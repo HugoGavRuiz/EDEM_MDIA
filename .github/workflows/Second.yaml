@@ -1,0 +1,15 @@
+name: Welcome to the party (second)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  say_hello:
+    name: "let's greet the user"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello there!"
+      - uses: actions/chekout@v3
+      - run: cat.cat ./github/workflows/list.txt
+        name: display contents of list.txt
+      - run: echo "I am step 4!"
