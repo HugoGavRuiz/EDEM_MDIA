@@ -6,7 +6,7 @@ on:
       thename:
         description: 'What is your name?'
         required: true
-
+        
 jobs:
   say_hello:
     name: "Let's greet the user!" 
