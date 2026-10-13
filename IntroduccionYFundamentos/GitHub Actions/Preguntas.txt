@@ -1,0 +1,18 @@
+¿Qué debería ocurrir cuando alguien modifica el Código?
+
+Cuando alguien modifica el código, no debería modificarlo sobre la main. 
+Debería crear una rama para ese flujo de trabajo y luego solicitar una pull request
+con una revisión como mínimo obligatoria.
+
+¿Qué deberíamos comprobar antes de aceptar el cambio?
+Antes de aceptar el cambio, deberíamos comprobar que todo sigue funcionando de
+forma correcta.
+
+¿Cómo sabemos que la app sigue funcionando?
+Realizando los tests unitarios pertinentes en el entorno preproductivo.
+
+¿Queremos probar el cambio antes de publicarlo?
+Por supuesto. Todo cambio en producción debe ser testeado al máximo.
+
+¿Cuando debería de llegar a producción?
+Cuando todo se haya probado de forma correcta tanto por ti como por tus compañeros.
