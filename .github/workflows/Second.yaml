@@ -1,8 +1,6 @@
 name: Welcome to the party (second)
-
 on:
   workflow_dispatch:
-
 jobs:
   say_hello:
     name: "let's greet the user"
