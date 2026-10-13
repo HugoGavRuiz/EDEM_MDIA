@@ -10,6 +10,6 @@ jobs:
     steps:
       - run: echo "Hello there!"
       - uses: actions/chekout@v3
-      - run: cat IntroduccionYFundamentos/GitHub Actions/list.txt
+      - run: cat IntroduccionYFundamentos/GitHub-Actions/list.txt
         name: display contents of list.txt
       - run: echo "I am step 4!"
