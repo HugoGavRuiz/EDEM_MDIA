@@ -1,0 +1,21 @@
+name: Global Environment Machine
+
+on:
+  workflow_dispatch:
+
+env:
+  GLOBAL_GREETING: "¡Hola desde la variable global!"
+
+jobs:
+  first_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Usar la variable global en el primer job
+        run: echo "Mensaje del primer job - $GLOBAL_GREETING"
+
+  second_job:
+    runs-on: ubuntu-latest
+    needs: first_job
+    steps:
+      - name: Usar la variable global en el segundo job
+        run: echo "Mensaje del segundo job - $GLOBAL_GREETING$"
