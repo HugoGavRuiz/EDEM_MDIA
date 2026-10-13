@@ -9,6 +9,6 @@ jobs:
       - id: get-time
         name: Grab the current get-time
         run: |
-          curTime = $(date)
+          curTime=$(date)
           echo "currenttime=${curTime}" >> $GITHUB_OUTPUT
       - run: echo "The time from the early step is ${{steps.get-time.output.currenttime}}"
