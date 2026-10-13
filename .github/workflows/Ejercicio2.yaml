@@ -1,0 +1,19 @@
+name: SECRET REVEALED - LOGIN SIMULATION 
+
+on:
+  workflow_dispatch:
+
+jobs:
+  simular_login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ejecutar un script de LOGIN
+        env:
+          USUARIO: "usuario_prueba"
+          PASSWORD: ${{secrets.SECRET_PASSWORD}}
+        run: |
+          echo "Iniciando proceso de autenticación..."
+          echo "Usuario: $USUARIO"
+          echo "Contraseña entregada: $PASSWORD"
+          echo "Ejecutando login..."
+          echo "¡LOGIN exitoso!"
