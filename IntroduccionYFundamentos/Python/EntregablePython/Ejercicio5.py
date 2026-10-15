@@ -3,7 +3,7 @@ def norm(s: str) -> str:
 
 # 2. Material proporcionado (NO modificar)
 bad = set()
-with open("IntroduccionYFundamentos/Python/EntregablePython/bad_words.txt", encoding="utf-8") as f:
+with open("bad_words.txt", encoding="utf-8") as f:
     for line in f:
         w = line.strip()
         if w:
