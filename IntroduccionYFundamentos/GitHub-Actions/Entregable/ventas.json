@@ -1,0 +1,7 @@
+{
+  "ventas": [
+    { "id": 1, "producto": "Portátil", "cantidad": 2, "precio": 899.99 },
+    { "id": 2, "producto": "Ratón", "cantidad": 10, "precio": 19.5 },
+    { "id": 3, "producto": "Monitor", "cantidad": 3, "precio": 249.0 }
+  ]
+}
