@@ -1,0 +1,61 @@
+station_id;name;district;lat;lon;capacity;opened
+1;Calle Caballeros, 22;Ciutat Vella;39,475962;-0,383585;15,0;2014-01-07
+2;Calle San Vicente Mártir, 43;Ciutat Vella;39,473832;-0,377248;30,0;2012-03-02
+3;Calle Caballeros, 78;Ciutat Vella;39,474096;-0,37312;30,0;2019-04-14
+4;Plaza de la Reina, 76;Ciutat Vella;39,474658;-0,375356;25,0;2018-05-20
+5;Calle San Vicente Mártir, 54;Ciutat Vella;39,477193;-0,376522;20,0;2012-08-21
+6;Calle Caballeros, 63;Ciutat Vella;39,477626;-0,376929;30,0;2010-08-04
+7;Calle de la Paz, 54;CIUTAT VELLA;39,482298;-0,378853;25,0;2016-03-03
+8;Plaza de la Reina, 52;Ciutat Vella;39,4757;-0,380678;35,0;2018-11-07
+9;Calle Ruzafa, 95;Eixample;39,470406;-0,368664;25,0;2019-07-17
+10;Calle Sueca, 68;Eixample;39,467738;-0,374076;15,0;2013-07-12
+11;Calle Cuba, 83;Eixample;39,468507;-0,371182;15,0;2017-03-08
+12;Calle Cuba, 28;Eixample;39,470777;-0,369624;25,0;2012-04-12
+13;Calle Colón, 88;Eixample;39,461737;-0,361762;15,0;2014-01-13
+14;Gran Vía Marqués del Turia, 51;eixample;39,471474;-0,368692;;2016-12-10
+15;Calle Erudito Orellana, 69;Extramurs;39,468229;-0,388087;15,0;2018-01-29
+16;Calle Erudito Orellana, 62;Extramurs;39,475152;-0,390222;25,0;2019-12-15
+17;Avenida Pérez Galdós, 7;Extramurs;39,466127;-0,393724;30,0;2013-06-24
+18;Avenida Pérez Galdós, 68;Extramurs;39,467627;-0,386972;25,0;2019-08-27
+19;Calle Erudito Orellana, 106;Extramurs;39,463037;-0,390795;15,0;2019-07-18
+20;Avenida Campanar, 3;Campanar;39,48948;-0,39318;15,0;2016-11-27
+21;Avenida Campanar, 58;Campanar;39,490148;-0,39571;30,0;2016-04-05
+22;Calle Valle de la Ballestera, 59;Campanar;39,485229;-0,393138;20,0;2012-04-09
+23;Avenida Campanar, 113;Campanar;39,482344;-0,395784;15,0;2016-10-15
+24;Avenida Burjassot, 65;La Saïdia;39,490352;-0,379828;30,0;2016-03-18
+25;Avenida Primado Reig, 97;La Saïdia;39,488469;-0,363867;15,0;2014-04-30
+26;Avenida Burjassot, 92;La Saïdia;39,483748;-0,376187;25,0;2018-09-06
+27;Calle Sagunto, 75;La Saïdia;39,491789;-0,373427;25,0;2013-09-16
+28;Avenida Primado Reig, 80;La Saïdia;39,487854;-0,369931;20,0;2010-10-13
+29;Paseo de la Alameda, 10;El Pla del Real;39,474792;-0,369152;35,0;2015-06-01
+30;Avenida Aragón, 79;El Pla del Real;39,477891;-0,353343;30,0;2013-07-10
+31;Avenida Aragón, 38; El Pla del Real ;39,481783;-0,358157;20,0;2018-04-28
+32;Paseo de la Alameda, 57;El Pla del Real;39,475274;-0,355844;35,0;2017-03-02
+33;Calle Jaime Roig, 89;El Pla del Real;39,478849;-0,353506;25,0;2016-09-12
+34;Calle Músico Ayllón, 86;L'Olivereta;39,460852;-0,406406;25,0;2017-01-25
+35;Calle Archiduque Carlos, 72;L'Olivereta;39,467191;-0,393574;15,0;2013-11-07
+36;Calle Archiduque Carlos, 115;L'Olivereta;39,465034;-0,41184;25,0;2013-12-28
+37;Avenida Tres Forques, 13;Patraix;39,459364;-0,395132;20,0;2013-07-10
+38;Calle Sevilla, 70;Patraix;39,465197;-0,393794;20,0;2011-09-10
+39;Calle Sevilla, 94;Patraix;39,454616;-0,396956;25,0;2017-09-25
+40;Avenida Real de Madrid, 66;Jesús;39,456397;-0,390706;25,0;2017-12-15
+41;Calle San Vicente Mártir, 44;Jesús;39,454987;-0,38203;25,0;2010-10-05
+42;Calle Jesús, 15;Jesús;39,456759;-0,388768;20,0;2013-09-05
+43;Avenida Ausiàs March, 68;Quatre Carreres;39,453155;-0,362027;25,0;2011-03-06
+44;Calle Escultor José Capuz, 102;Quatre Carreres;39,451418;-0,362716;35,0;2013-04-23
+45;Avenida Ausiàs March, 86;Quatre Carreres;39,446556;-0,372117;15,0;2019-11-09
+46;Avenida Hermanos Maristas, 33;Quatre Carreres  ;39,450173;-0,357309;25,0;2011-03-26
+47;Avenida Peris y Valero, 79;Quatre Carreres;39,45428;-0,36791;35,0;2015-09-26
+48;Paseo Marítimo, 55;Poblats Marítims;39,468022;-0,330817;15,0;2015-04-01
+49;Calle Reina, 108;Poblats Marítims;39,465897;-0,331469;35,0;2013-11-18
+50;Avenida del Puerto, 93;Poblats Marítims;39,46546;-0,331478;35,0;2017-08-08
+51;Calle Reina, 92;Poblats Marítims;39,465816;-0,335934;20,0;2012-07-02
+52;Avenida del Puerto, 107;Poblats Marítims;39,465304;-0,329445;20,0;2012-12-26
+53;Calle Menorca, 50;Poblats Marítims;39,465144;-0,329369;20,0;2019-04-11
+54;Avenida de Francia, 70;Camins al Grau;39,462941;-0,348854;25,0;2015-03-12
+55;Avenida del Puerto, 76;Camins al Grau;39,4631;-0,350523;;2013-06-12
+56;Avenida de Francia, 69;Camins al Grau;39,465249;-0,351741;15,0;2012-05-31
+57;Calle Doctor Manuel Candela, 103;Camins al Grau;39,458795;-0,356413;25,0;2014-01-01
+58;Calle Ramón Llull, 36;ALGIRÓS;39,47276;-0,347165;20,0;2014-08-22
+59;Calle Ramón Llull, 93;Algirós;39,472084;-0,347888;20,0;2015-02-12
+60;Calle Ramón Llull, 17;algirós;39,474144;-0,338508;20,0;2011-03-15
