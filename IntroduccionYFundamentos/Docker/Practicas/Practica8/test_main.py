@@ -1,4 +1,4 @@
-from main import primera_letra
+from IntroduccionYFundamentos.Docker.Practicas.Practica8.main import primera_letra
  
 def test_nombre():
     assert primera_letra("David") == "D"
