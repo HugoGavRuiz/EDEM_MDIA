@@ -32,9 +32,9 @@ for raiz, carpetas, archivos in os.walk("."):
 
 print("🔍 Iniciando escaneo de seguridad...")
 if hallazgos:
-    print("❌ Se han encontrado posibles claves expuestas:")
+    print("Se han encontrado posibles claves expuestas:")
     for h in hallazgos:
         print("  -", h)
     sys.exit(1)
 
-print("✅ Escaneo completado: no se han encontrado claves API expuestas.")
+print("Escaneo completado: no se han encontrado claves API expuestas.")
