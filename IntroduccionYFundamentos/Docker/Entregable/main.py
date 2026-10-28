@@ -1,7 +1,6 @@
-Numero1 = float(input('¿Cual es el primer número?: '))
+import sys
 
-Numero2 = float(input('¿Cual es el segundo número?: '))
+numero1 = float(sys.argv[1])
+numero2 = float(sys.argv[2])
 
-## Se pone float para evitar que alguien meta 4,5 y de error. De esta forma, cubres tanto enteros como decimales.
-
-print("El número es:", Numero1 + Numero2)
+print("La suma es:", numero1 + numero2)
