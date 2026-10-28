@@ -1,47 +1,47 @@
 name: Ejercicio Entregable - Procesamiento de Ventas
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: ## La trigger condition del workflow
     inputs:
       tests_seguridad:
         description: "¿Ejecutar los Tests de Seguridad?"
-        required: true
+        required: true ## Hace que el input sea obligatorio
         default: "no"
-        type: choice
+        type: choice ## El tipo del input, en este caso le damos opciones
         options:
           - "si"
           - "no"
 
 jobs:
-  ci_seguridad:
-    name: CI y Seguridad
-    runs-on: ubuntu-latest
+  ci_seguridad: ## Job 1
+    name: CI y Seguridad ## Nombre con el que se verá en la interfaz
+    runs-on: ubuntu-latest ## Se va a ejecutar con ubuntu en la MV
 
     steps:
       - name: Descargar el código del repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 ## Clonamos el código del repo en la MV
 
       - name: Validar que ventas.json es un JSON válido
-        run: |
-          python3 -m json.tool ventas.json > /dev/null
+        run: | ## Varias líneas. Cada línea es un comando de terminal.
+          python3 -m json.tool ventas.json > /dev/null 
           echo "✅ ventas.json es un JSON válido"
 
       - name: Escaneo de seguridad (claves API expuestas)
         if: ${{ inputs.tests_seguridad == 'si' }}
         run: python3 scripts/escaneo_seguridad.py
 
-  procesamiento:
+  procesamiento: ## Job 2
     name: Procesamiento (${{ matrix.entorno }})
     runs-on: ubuntu-latest
-    needs: ci_seguridad
+    needs: ci_seguridad ## Necesita que el Job 1 se haya ejecutado sin fallo.
 
     strategy:
       matrix:
-        entorno: [staging, production]
+        entorno: [staging, production] ## Cada uno corre en su propia MV y en paralelo
 
     steps:
       - name: Descargar el código del repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 ## Cada Job tiene su propia MV. Hay que volver a clonar el repo.
 
       - name: Procesar ventas y generar reporte
         run: |
