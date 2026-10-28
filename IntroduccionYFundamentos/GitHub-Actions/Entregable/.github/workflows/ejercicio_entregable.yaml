@@ -24,7 +24,7 @@ jobs:
       - name: Validar que ventas.json es un JSON válido
         run: | ## Varias líneas. Cada línea es un comando de terminal.
           python3 -m json.tool ventas.json > /dev/null 
-          echo "✅ ventas.json es un JSON válido"
+          echo "ventas.json es un JSON válido"
 
       - name: Escaneo de seguridad (claves API expuestas)
         if: ${{ inputs.tests_seguridad == 'si' }}
@@ -43,39 +43,15 @@ jobs:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4 ## Cada Job tiene su propia MV. Hay que volver a clonar el repo.
 
-      - name: Procesar ventas y generar reporte
-        run: |
-          python3 - <<'EOF'
-          import json, os
-          from datetime import datetime, timezone
-
-          entorno = os.environ["ENTORNO"]
-          with open("ventas.json", encoding="utf-8") as f:
-              ventas = json.load(f)["ventas"]
-
-          total = sum(v["cantidad"] * v["precio"] for v in ventas)
-          unidades = sum(v["cantidad"] for v in ventas)
-
-          with open(f"reporte_{entorno}.txt", "w", encoding="utf-8") as r:
-              r.write(f"REPORTE DE VENTAS - Entorno: {entorno.upper()}\n")
-              r.write(f"Fecha: {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC\n")
-              r.write(f"Ejecución nº: {os.environ['RUN_NUMBER']}\n")
-              r.write("-" * 40 + "\n")
-              for v in ventas:
-                  r.write(f"{v['producto']}: {v['cantidad']} x {v['precio']:.2f} €\n")
-              r.write("-" * 40 + "\n")
-              r.write(f"Nº de ventas: {len(ventas)}\n")
-              r.write(f"Unidades totales: {unidades}\n")
-              r.write(f"Importe total: {total:.2f} €\n")
-          EOF
-          echo "📄 Contenido del reporte:"
-          cat reporte_${{ matrix.entorno }}.txt
-        env:
-          ENTORNO: ${{ matrix.entorno }}
-          RUN_NUMBER: ${{ github.run_number }}
+      - name: Procesar ventas y generar reporte.
+        run: | # falla si el archivo no existe o está vacío
+          python3 scripts/generar_reporte.py ${{ matrix.entorno }}
+          test -s reporte_${{ matrix.entorno }}.txt   
+          echo "Reporte reporte_${{ matrix.entorno }}.txt generado correctamente"
+          echo "Podrás descargarlo en la sección Artifacts al terminar el workflow"
 
       - name: Subir reporte como artefacto
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4 ## Creamos el artifact para que el reporte sea descargable.
         with:
           name: reporte-${{ matrix.entorno }}
           path: reporte_${{ matrix.entorno }}.txt
@@ -93,11 +69,11 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           if [ -z "$DISCORD_WEBHOOK" ]; then
-            echo "❌ El secreto DISCORD_WEBHOOK no está configurado"
+            echo "El secreto DISCORD_WEBHOOK no está configurado"
             exit 1
           fi
           echo "📢 Enviando notificación a Discord..."
           echo "Webhook: $DISCORD_WEBHOOK"
-          echo "Mensaje: ✅ El workflow '${{ github.workflow }}' (ejecución nº ${{ github.run_number }}) ha terminado correctamente."
+          echo "Mensaje: El workflow '${{ github.workflow }}' (ejecución nº ${{ github.run_number }}) ha terminado correctamente."
           echo "Tests de seguridad ejecutados: ${{ inputs.tests_seguridad }}"
-          echo "✅ Notificación enviada (simulada)"
+          echo "Notificación enviada (simulada)"
