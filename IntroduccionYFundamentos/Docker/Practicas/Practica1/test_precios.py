@@ -1,4 +1,4 @@
-from precios import precio_final
+from IntroduccionYFundamentos.Docker.Practicas.Practica1.precios import precio_final
 
 def test_con_descuento():
     assert precio_final(100, 20) == 80
