@@ -140,7 +140,7 @@ def integrity_error(exc: IntegrityError) -> HTTPException:
         value = match.group(1) if match else "This value"
         # TODO: The value already exists. Which status code means "conflicts with the current state"?
         # Hint: 409 Conflict
-        return HTTPException(status_code=_____, detail=f"'{value}' already exists and must be unique.")
+        return HTTPException(status_code=409, detail=f"'{value}' already exists and must be unique.")
     if code == 1451:  # A row we try to delete is still referenced by a foreign key
         return HTTPException(status_code=409, detail="Other rows still point to this one.")
     if code == 1452:  # The foreign key points to a row that does not exist
@@ -178,7 +178,7 @@ def to_book(row: dict) -> Book:
 def get_book_or_404(cur, book_id: int) -> Book:
     # TODO: Never paste values into the SQL text. Which placeholder does PyMySQL replace with book_id?
     # Hint: %s (PyMySQL sends book_id as a value, never as part of the SQL text)
-    cur.execute(BOOK_SELECT + " WHERE b.id = _____", (book_id,))
+    cur.execute(BOOK_SELECT + " WHERE b.id = %s", (book_id,))
     row = cur.fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail=f"Book {book_id} does not exist.")
@@ -232,14 +232,14 @@ def create_book(data: BookCreate, request: Request, response: Response) -> Book:
             raise integrity_error(exc)
         # TODO: The database generated the id (AUTO_INCREMENT). Which cursor attribute tells us which one?
         # Hint: lastrowid
-        book_id = cur._____
+        book_id = cur.lastrowid
         # TODO: Nothing is saved until we confirm it. Which connection method saves the changes?
         # Hint: commit (the other endpoints already call it; look at replace_book)
-        conn._____()
+        conn.commit()
         book = get_book_or_404(cur, book_id)
     # TODO: 201 Created must say WHERE the new book lives, in a response header
     # Hint: the header is called Location; its value is the URL of the new book
-    response.headers["_____"] = str(request.url_for("get_book", book_id=book.id))
+    response.headers["Location"] = str(request.url_for("get_book", book_id=book.id))
     return book
 
 
@@ -265,7 +265,7 @@ def replace_book(book_id: int, data: BookCreate) -> Book:
 
 # TODO: Which method changes only SOME fields of a resource?
 # Hint: patch (lowercase: @app.patch). The body is BookUpdate: every field is optional
-@app._____("/books/{book_id}")
+@app.patch("/books/{book_id}")
 def update_book(book_id: int, data: BookUpdate) -> Book:
     with db() as conn, conn.cursor() as cur:
         get_book_or_404(cur, book_id)
@@ -283,18 +283,18 @@ def update_book(book_id: int, data: BookUpdate) -> Book:
 
 # TODO: Which method removes a resource? And which status code says "done, nothing to send back"?
 # Hint: delete (lowercase: @app.delete); the status_code is the same one the function returns below (204)
-@app._____("/books/{book_id}", status_code=_____)
+@app.delete("/books/{book_id}", status_code=204)
 def delete_book(book_id: int) -> Response:
     with db() as conn, conn.cursor() as cur:
         cur.execute("DELETE FROM books WHERE id = %s", (book_id,))
         # TODO: How many rows did the DELETE remove? 0 means the book was not there (404)
         # Hint: rowcount
-        if cur._____ == 0:
+        if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail=f"Book {book_id} does not exist.")
         conn.commit()
     # 204 means NO body, so we return an empty Response instead of a value
     # Hint: 204 No Content
-    return Response(status_code=_____)
+    return Response(status_code=204)
 
 
 @app.get("/books")
@@ -302,7 +302,7 @@ def delete_book(book_id: int) -> Response:
 # Hint: le means "less than or equal"; the maximum is 100
 def list_books(
     request: Request,
-    limit: Annotated[int, Query(ge=1, le=_____)] = 20,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
     author_id: int | None = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
@@ -326,7 +326,7 @@ def list_books(
         total = cur.fetchone()["total"]
         # TODO: Ask MySQL for one page only: at most `limit` rows, skipping the first `offset`
         # Hint: the same placeholder as before, twice (the values are the last two of the tuple)
-        cur.execute(BOOK_SELECT + where_sql + " ORDER BY b.id LIMIT _____ OFFSET _____", (*params, limit, offset))
+        cur.execute(BOOK_SELECT + where_sql + " ORDER BY b.id LIMIT %s OFFSET %s", (*params, limit, offset))
         books = [to_book(row) for row in cur.fetchall()]
 
     def link(new_offset: int) -> str:
