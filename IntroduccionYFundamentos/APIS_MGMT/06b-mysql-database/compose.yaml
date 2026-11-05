@@ -1,0 +1,39 @@
+# MySQL database for exercise 06b (and Adminer, to look at the tables in the browser).
+#   Start:  docker compose up -d --wait
+#   Stop:   docker compose down        (the data is kept in the "library-data" volume)
+#   Reset:  docker compose down -v     (deletes the volume; init.sql runs again on the next start)
+# Values come from the .env of this folder (copy .env.example to .env); the defaults below are the same.
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root-pass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-library}
+      MYSQL_USER: ${MYSQL_USER:-library}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-library-pass}
+    ports:
+      # 127.0.0.1: only your own computer can connect (not the rest of the classroom Wi-Fi)
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - library-data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  adminer:
+    image: adminer:5
+    ports:
+      - "127.0.0.1:${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  library-data:
