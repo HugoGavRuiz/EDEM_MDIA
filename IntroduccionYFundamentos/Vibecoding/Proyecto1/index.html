@@ -6,9 +6,43 @@
   <title>Planificador de hipoteca</title>
 </head>
 <body>
-  <main>
+  <main class="tarjeta">
     <h1>Planificador de hipoteca</h1>
-    <p>Calcula tu cuota, la cuota máxima que puedes asumir y cuánto tardarás en ahorrar la entrada.</p>
+    <p class="intro">Calcula tu cuota, la cuota máxima que puedes asumir y cuánto tardarás en ahorrar la entrada.</p>
+
+    <form id="form-hipoteca" novalidate>
+      <fieldset>
+        <legend>Condiciones</legend>
+        <div class="campo">
+          <label for="interes">Interés anual (%)</label>
+          <input id="interes" name="interes" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" aria-describedby="error-interes">
+          <p class="error" id="error-interes" aria-live="polite"></p>
+        </div>
+        <div class="campo">
+          <label for="plazo">Plazo (años)</label>
+          <input id="plazo" name="plazo" type="text" inputmode="numeric" autocomplete="off" placeholder="30" aria-describedby="error-plazo">
+          <p class="error" id="error-plazo" aria-live="polite"></p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Calculadora de hipoteca</legend>
+        <div class="campo">
+          <label for="importe">Importe del préstamo (€)</label>
+          <input id="importe" name="importe" type="text" inputmode="decimal" autocomplete="off" placeholder="150.000" aria-describedby="error-importe">
+          <p class="error" id="error-importe" aria-live="polite"></p>
+        </div>
+      </fieldset>
+
+      <button type="submit">Calcular cuota</button>
+    </form>
+
+    <div class="resultado" id="resultado" aria-live="polite" hidden>
+      <span>Cuota mensual</span>
+      <strong id="cuota"></strong>
+    </div>
   </main>
+
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

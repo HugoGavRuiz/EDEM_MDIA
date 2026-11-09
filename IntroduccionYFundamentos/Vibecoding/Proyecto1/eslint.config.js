@@ -13,6 +13,14 @@ export default [
     },
   },
   {
+    files: ['e2e/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
+  {
     files: ['*.config.js'],
     languageOptions: {
       ecmaVersion: 'latest',

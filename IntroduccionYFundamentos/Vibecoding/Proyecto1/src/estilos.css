@@ -1,0 +1,78 @@
+:root {
+  --fondo: #f4f6fa;
+  --tarjeta: #ffffff;
+  --texto: #1d2433;
+  --suave: #4b5565;
+  --acento: #1d4ed8;
+  --error: #b42318;
+  --borde: #c3cad6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.tarjeta {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--tarjeta);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+h1 { margin: 0 0 4px; font-size: 1.5rem; }
+.intro { margin: 0 0 20px; color: var(--suave); }
+
+fieldset { margin: 0 0 16px; padding: 12px 14px 4px; border: 1px solid var(--borde); border-radius: 8px; }
+legend { padding: 0 6px; font-weight: 700; }
+
+.campo { margin-bottom: 12px; }
+label { display: block; margin-bottom: 4px; font-weight: 600; }
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit; /* 16 px: evita el zoom automático en móvil */
+  color: inherit;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+input:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.35); border-color: var(--acento); }
+input[aria-invalid="true"] { border-color: var(--error); }
+
+.error { min-height: 1.2em; margin: 4px 0 0; color: var(--error); font-size: 0.875rem; }
+
+button {
+  width: 100%;
+  padding: 12px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--acento);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.1); }
+button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
+
+.resultado {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde);
+}
+.resultado[hidden] { display: none; }
+.resultado strong { font-size: 1.4rem; color: var(--acento); font-variant-numeric: tabular-nums; }

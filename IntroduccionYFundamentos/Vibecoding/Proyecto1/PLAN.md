@@ -36,7 +36,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Dependencias: `eslint`, `@eslint/js`, `globals`. Configuración plana y script `lint`.
   Comprobación: `npm run lint` sin errores ni avisos sobre el código existente; una violación provocada a propósito (y revertida) falla.
 
-- [ ] **Fase 4 — Formulario de la calculadora + e2e mínima.**
+- [x] **Fase 4 — Formulario de la calculadora + e2e mínima.**
   Bloque «Condiciones» (interés y plazo) y calculadora (importe). Errores junto al campo con `aria-live`, labels asociadas, `textContent` y no `innerHTML`, formato € con `Intl.NumberFormat('es-ES')`, maquetación móvil. Dependencia: `@playwright/test` (avisando antes de la descarga). `e2e/calculadora.spec.js`.
   Comprobación: `npm test`, `npm run lint` y `npm run test:e2e` en verde; valores válidos dan la cuota; inválidos muestran el error en su campo; vista usable a 375 px.
 
