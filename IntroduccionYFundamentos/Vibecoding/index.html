@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Hipoteca</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --card: #ffffff;
+      --text: #1d2433;
+      --muted: #5b6475;
+      --accent: #2563eb;
+      --error: #c62828;
+      --border: #d5dae3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      width: 100%;
+      max-width: 420px;
+      padding: 28px;
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+    }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .sub { margin: 0 0 24px; color: var(--muted); font-size: 0.9rem; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
+    .field { margin-bottom: 18px; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    input.invalid { border-color: var(--error); }
+    .error { color: var(--error); font-size: 0.82rem; min-height: 1em; margin-top: 4px; }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    .results { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 18px; display: none; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; }
+    .row span:first-child { color: var(--muted); }
+    .row span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .row.main span:last-child { font-size: 1.4rem; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Calculadora de Hipoteca</h1>
+    <p class="sub">Sistema de amortización francés (cuota constante)</p>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="importe">Importe del préstamo (€)</label>
+        <input type="number" id="importe" min="0" step="any" placeholder="150000">
+        <div class="error" id="err-importe"></div>
+      </div>
+      <div class="field">
+        <label for="interes">Tipo de interés anual (%)</label>
+        <input type="number" id="interes" min="0" step="any" placeholder="3.5">
+        <div class="error" id="err-interes"></div>
+      </div>
+      <div class="field">
+        <label for="anios">Plazo (años)</label>
+        <input type="number" id="anios" min="1" step="1" placeholder="30">
+        <div class="error" id="err-anios"></div>
+      </div>
+      <button type="submit">Calcular</button>
+    </form>
+
+    <section class="results" id="results">
+      <div class="row main"><span>Cuota mensual</span><span id="cuota"></span></div>
+      <div class="row"><span>Total pagado</span><span id="total"></span></div>
+      <div class="row"><span>Intereses totales</span><span id="intereses"></span></div>
+    </section>
+  </main>
+
+  <script>
+    const fmt = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
+
+    // Bloquea la tecla "-" y "e" para impedir introducir negativos o notación científica
+    document.querySelectorAll("input").forEach(input => {
+      input.addEventListener("keydown", e => {
+        if (["-", "e", "E", "+"].includes(e.key)) e.preventDefault();
+      });
+      input.addEventListener("input", () => {
+        input.classList.remove("invalid");
+        document.getElementById("err-" + input.id).textContent = "";
+      });
+    });
+
+    function validar(id, { permitirCero = false, entero = false } = {}) {
+      const input = document.getElementById(id);
+      const err = document.getElementById("err-" + id);
+      const raw = input.value.trim();
+      const valor = Number(raw);
+      let msg = "";
+
+      if (raw === "" || Number.isNaN(valor)) msg = "Introduce un número válido.";
+      else if (valor < 0) msg = "No se permiten números negativos.";
+      else if (!permitirCero && valor === 0) msg = "Debe ser mayor que 0.";
+      else if (entero && !Number.isInteger(valor)) msg = "Debe ser un número entero.";
+
+      err.textContent = msg;
+      input.classList.toggle("invalid", msg !== "");
+      return msg ? null : valor;
+    }
+
+    document.getElementById("form").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const P = validar("importe");
+      const tasaAnual = validar("interes", { permitirCero: true });
+      const anios = validar("anios", { entero: true });
+
+      const results = document.getElementById("results");
+      if (P === null || tasaAnual === null || anios === null) {
+        results.style.display = "none";
+        return;
+      }
+
+      // Sistema francés: C = P · i / (1 − (1 + i)^−n)
+      const i = tasaAnual / 100 / 12;   // interés mensual
+      const n = anios * 12;             // número de cuotas
+      const cuota = i === 0 ? P / n : P * i / (1 - Math.pow(1 + i, -n));
+      const total = cuota * n;
+      const intereses = total - P;
+
+      document.getElementById("cuota").textContent = fmt.format(cuota);
+      document.getElementById("total").textContent = fmt.format(total);
+      document.getElementById("intereses").textContent = fmt.format(intereses);
+      results.style.display = "block";
+    });
+  </script>
+</body>
+</html>
