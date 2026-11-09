@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+__pycache__/
+.venv/
+venv/
+.DS_Store
+test-results/
+playwright-report/
+.streamlit/secrets.toml
