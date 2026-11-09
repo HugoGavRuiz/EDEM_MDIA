@@ -72,21 +72,23 @@ Una sola página con **estado compartido**. Distribución: bloque «Condiciones�
 - HTML + CSS + JavaScript (módulos ES), sin framework.
 - **Vite** (servidor y build), **Vitest** (pruebas unitarias junto al código, `*.test.js`), **ESLint** con `@eslint/js` y `globals`, **Playwright** (e2e en `e2e/`).
 - Node: `engines` `^22.12.0 || ^24.0.0 || >=26.0.0` (el límite lo marca Vitest 5) y `.nvmrc` con 26.
-- Estructura: lógica de negocio, validación, parseo y lectura de lo guardado como módulos puros en `src/logica/`; en `src/ui/` solo DOM fino. Los errores se escriben con `textContent`, nunca con `innerHTML`. Máximo 500 líneas por archivo.
+- Estructura: lógica de negocio, validación, parseo, geometría del gráfico y lectura de lo guardado como módulos puros en `src/logica/` (cada uno con su `*.test.js` al lado); en `src/ui/` solo DOM fino (formularios, tablas, gráfico SVG, `localStorage`). Los errores se escriben con `textContent`, nunca con `innerHTML`. Máximo 500 líneas por archivo.
+- Una página con tres formularios independientes (`form-hipoteca`, `form-capacidad`, `form-ahorro`): Enter en un campo ejecuta el cálculo de su propio formulario. Interés y plazo viven en el primero y los usan los tres. Al cambiar un campo se ocultan los resultados que dependen de él.
 - Las dependencias se instalan de una en una, avisando antes, comprobando que existen y que son compatibles con la versión de Vite. Todas son de desarrollo. Playwright descarga navegadores (cientos de MB): se avisa antes.
 - Accesibilidad básica: labels asociadas, errores con `aria-live`, tablas con cabeceras correctas, diseño usable en móvil.
 
 ## Cómo se arrancará
 ```
 npm install
-npm run dev      # servidor local de Vite
-npm run build    # build de producción (no se publica nada sin permiso)
+npx playwright install chromium   # solo la primera vez (≈100 MB, para las pruebas e2e)
+npm run dev                       # servidor local de Vite en http://localhost:5173
+npm run build                     # build de producción en dist/ (no se publica nada sin permiso)
 ```
-Los comandos se irán habilitando por fases (ver `PLAN.md`): `dev` y `build` en la fase 1, `test` en la 2, `lint` en la 3 y `test:e2e` en la 4.
+Requiere Node `^22.12.0 || ^24.0.0 || >=26.0.0` (ver `.nvmrc`). Todos los comandos están disponibles: `dev`, `build`, `test`, `lint` y `test:e2e`.
 
 ## Cómo se probará
 - `npm test` — Vitest sobre `src/logica`: cuota, amortización, cuota máxima, préstamo y precio máximos, escenarios de ahorro, parseo y validación, lectura de lo guardado. Casos límite: interés 0 % (también en préstamo máximo), ahorro ≥ objetivo, cuota máxima 0, redondeo hacia arriba, el selector 12/14 no altera el resultado.
-- `npm run test:e2e` — Playwright, empezando con una prueba mínima en cuanto hay interfaz y ampliándola en cada fase: formularios, errores de validación, persistencia (incluido `localStorage` corrupto o bloqueado), botón de borrado, accesibilidad y vista móvil. La interfaz se prueba con e2e (sin jsdom/happy-dom); si resultara lenta o frágil, se valoraría `happy-dom`.
+- `npm run test:e2e` — Playwright (Chromium) en `e2e/`: calculadora, cuota máxima, ahorro y precio concreto, persistencia (incluido `localStorage` corrupto o bloqueado), botón de borrado, límites de cada campo, flujo completo, accesibilidad (etiquetas, `aria-live`, tablas, orden de tabulación, foco) y vista móvil a 375 px. Arranca su propio servidor en el puerto 5174. La interfaz se prueba con e2e (sin jsdom/happy-dom); si resultara lenta o frágil, se valoraría `happy-dom`.
 - `npm run lint` — ESLint sin errores ni avisos.
 - Antes de dar nada por terminado se ejecutan todas y se muestra el resultado. Los bugs se corrigen escribiendo primero una prueba que falle.
 

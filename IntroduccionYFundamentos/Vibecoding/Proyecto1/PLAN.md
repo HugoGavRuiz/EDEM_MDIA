@@ -68,7 +68,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Barras de capital e intereses por año a partir de `cuadroAmortizacionAnual`, con etiquetas `title` y alternativa de texto.
   Comprobación: pruebas de la función de escalas/barras; e2e: una barra por año del plazo; sin errores de consola.
 
-- [ ] **Fase 12 — Revisión final.**
+- [x] **Fase 12 — Revisión final.**
   Playwright con el flujo completo, revisión de accesibilidad (labels, `aria-live`, tabla, móvil, foco) y de los avisos de `docs/project-info.md`; comprobar el botón de borrado y los máximos de cada campo.
   Comprobación: `npm test`, `npm run lint`, `npm run test:e2e` y `npm run build` en verde, con la salida mostrada.
 
