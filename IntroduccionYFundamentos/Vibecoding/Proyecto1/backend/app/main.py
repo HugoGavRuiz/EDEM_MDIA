@@ -4,19 +4,26 @@ Los cálculos viven en el navegador; esta API solo sirve y cachea datos externos
 Se arranca con: uvicorn app.main:crear_app --factory
 """
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 
+from app.bce import crear_descargador
 from app.config import Settings
 from app.db import base_de_datos_disponible, crear_motor
+from app.tipos_interes import Descargador, RespuestaTipos, SinDatos, obtener_tipos
 
 
-def crear_app(settings: Settings | None = None, motor: Engine | None = None) -> FastAPI:
+def crear_app(
+    settings: Settings | None = None,
+    motor: Engine | None = None,
+    descargador: Descargador | None = None,
+) -> FastAPI:
     settings = settings or Settings()
     app = FastAPI(title="Planificador de hipoteca - API")
     app.state.settings = settings
     app.state.motor = motor or crear_motor(settings)
+    app.state.descargador = descargador or crear_descargador()
 
     app.add_middleware(
         CORSMiddleware,
@@ -36,5 +43,12 @@ def crear_app(settings: Settings | None = None, motor: Engine | None = None) -> 
         respuesta.status_code = 503
         # Sin detalles de conexión: nunca se filtran credenciales ni nombres de host.
         return {"estado": "error", "detalle": "base de datos no disponible"}
+
+    @app.get("/tipos-interes")
+    def tipos_interes() -> RespuestaTipos:
+        try:
+            return obtener_tipos(app.state.motor, app.state.descargador)
+        except SinDatos:
+            raise HTTPException(503, "tipos de interés no disponibles") from None
 
     return app

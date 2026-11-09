@@ -81,7 +81,7 @@ Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvico
   `docker-compose.yml` con PostgreSQL (y la API en contenedor), `backend/` con FastAPI, configuración desde `.env`, `GET /salud` y `GET /salud/db`, `pytest` y `ruff`. El `.env` local lleva una contraseña de desarrollo.
   Comprobación: `docker compose up -d db`; `uv run pytest` y `ruff` en verde; `curl /salud` → 200; `/salud/db` → 200 con la base arriba y 503 con la base parada; `.env` fuera de git.
 
-- [ ] **Fase 14 — Tipos de interés del BCE.**
+- [x] **Fase 14 — Tipos de interés del BCE.**
   Modelo y migración Alembic de la tabla de caché, cliente httpx del BCE (parseo SDMX JSON, probado con una respuesta grabada), servicio de caché de 24 h y `GET /tipos-interes` con CORS. Si el BCE falla se sirve la caché con `desactualizado: true`; sin caché → 503.
   Comprobación: `uv run pytest` (parseo, caché fresca/antigua, BCE caído con y sin caché, endpoint, CORS); una llamada real al BCE a mano devuelve la serie actual y queda cacheada en PostgreSQL.
 
