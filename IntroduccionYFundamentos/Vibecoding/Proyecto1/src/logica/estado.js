@@ -10,6 +10,7 @@ import {
   validarIngresos,
   validarInteres,
   validarPlazo,
+  validarPrecio,
 } from './validacion.js';
 
 const unoDe = (opciones) => (valor) => ({ ok: opciones.includes(valor) });
@@ -22,6 +23,7 @@ export const CAMPOS_GUARDADOS = {
   pagas: unoDe(['12', '14']),
   ingresos: (valor, estado) => validarIngresos(valor, estado.periodo ?? 'mensual'),
   ahorro: validarAhorro,
+  precio: validarPrecio,
 };
 
 const MAX_LONGITUD = 40;

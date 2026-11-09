@@ -8,6 +8,7 @@ const DEPENDENCIAS = {
   ingresos: ['resultado-capacidad', 'resultado-ahorro'],
   periodo: ['resultado-capacidad', 'resultado-ahorro'],
   ahorro: ['resultado-ahorro'],
+  precio: ['resultado-ahorro'],
 };
 
 export function iniciarInvalidacion() {

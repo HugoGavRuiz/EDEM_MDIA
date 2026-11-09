@@ -60,7 +60,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   `src/logica/ahorro.js`: entradas «ahorro actual» (vacío = 0) y precio por defecto = precio máximo. Necesario = 30 % del precio − ahorro (mínimo 0). `ESCENARIOS_AHORRO = [100, 75, 50, 25]` (constante de negocio, no editable). Meses = necesario ÷ (porcentaje × cuota máxima), redondeado hacia arriba tras eliminar ruido de coma flotante. `formatearDuracion(meses)` («10 meses», «1 año y 2 meses», «2 años»). Tabla de escenarios (importe mensual, porcentaje, meses, años y meses). Si ya llega: «ya puedes comprar» y sin tabla. Sin cuota máxima y faltando dinero: «sin ingresos no se puede calcular un ahorro». Avisos de ahorro constante, sin rentabilidad ni inflación.
   Comprobación: ahorro 0, parcial, ≥ objetivo, redondeo hacia arriba, cuota máxima ≤ 0 sin `Infinity`/`NaN`; 5.000 € / 500 € → 10, 14, 20 y 40 meses; precio ≈ 194.850 € sin ahorro y cuota 700 € al 100 % → ≈ 84 meses; la tabla tiene cabeceras `th`.
 
-- [ ] **Fase 10 — Precio concreto.**
+- [x] **Fase 10 — Precio concreto.**
   Campo opcional «precio de la vivienda» (> 0 si se rellena; vacío usa el precio máximo). Muestra la cuota de ese precio al 80 % de financiación con interés y plazo comunes y avisa si supera la cuota máxima del 35 %. Aclara en pantalla que los escenarios de ahorro usan la cuota máxima, no la cuota de ese precio. Persiste en el estado.
   Comprobación: el precio concreto sustituye al máximo en el cálculo de ahorro; aviso visible solo cuando cuota > cuota máxima; sin interés o plazo la cuota se oculta; sin ingresos muestra lo que falta pero no escenarios.
 

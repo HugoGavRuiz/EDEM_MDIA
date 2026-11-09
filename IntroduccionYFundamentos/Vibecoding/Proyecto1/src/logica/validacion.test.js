@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { validarImporte, validarIngresos, validarInteres, validarPlazo } from './validacion.js';
+import {
+  validarAhorro,
+  validarImporte,
+  validarIngresos,
+  validarInteres,
+  validarPlazo,
+  validarPrecio,
+} from './validacion.js';
 
 describe('validarImporte', () => {
   it('acepta importes válidos en formato es-ES', () => {
@@ -100,6 +107,61 @@ describe('validarIngresos', () => {
 
   it('lanza si el periodo no es mensual ni anual', () => {
     expect(() => validarIngresos('2000', 'semanal')).toThrow(RangeError);
+  });
+});
+
+describe('validarAhorro', () => {
+  it('vacío vale 0', () => {
+    expect(validarAhorro('')).toEqual({ ok: true, valor: 0 });
+    expect(validarAhorro('  ')).toEqual({ ok: true, valor: 0 });
+    expect(validarAhorro(undefined)).toEqual({ ok: true, valor: 0 });
+  });
+
+  it('acepta 0 y cantidades válidas', () => {
+    expect(validarAhorro('0')).toEqual({ ok: true, valor: 0 });
+    expect(validarAhorro('20.000,50')).toEqual({ ok: true, valor: 20000.5 });
+  });
+
+  it('acepta el máximo exacto y rechaza lo que lo supera', () => {
+    expect(validarAhorro('100.000.000').ok).toBe(true);
+    expect(validarAhorro('100.000.001')).toEqual({ ok: false, error: 'No puede superar 100.000.000 €.' });
+  });
+
+  it('rechaza negativos, decimales de más y formato inválido', () => {
+    expect(validarAhorro('-1').error).toBe('No se permiten números negativos.');
+    expect(validarAhorro('10,999')).toEqual({ ok: false, error: 'Máximo 2 decimales.' });
+    expect(validarAhorro('1.5').error).toMatch(/coma/);
+    expect(validarAhorro('NaN').ok).toBe(false);
+    expect(validarAhorro('Infinity').ok).toBe(false);
+  });
+});
+
+describe('validarPrecio', () => {
+  it('vacío significa que no se ha indicado (null)', () => {
+    expect(validarPrecio('')).toEqual({ ok: true, valor: null });
+    expect(validarPrecio('   ')).toEqual({ ok: true, valor: null });
+    expect(validarPrecio(undefined)).toEqual({ ok: true, valor: null });
+  });
+
+  it('acepta precios válidos', () => {
+    expect(validarPrecio('200.000')).toEqual({ ok: true, valor: 200000 });
+    expect(validarPrecio('0,01')).toEqual({ ok: true, valor: 0.01 });
+  });
+
+  it('rechaza 0 si se rellena', () => {
+    expect(validarPrecio('0')).toEqual({ ok: false, error: 'Debe ser mayor que 0.' });
+  });
+
+  it('acepta el máximo exacto y rechaza lo que lo supera', () => {
+    expect(validarPrecio('100.000.000').ok).toBe(true);
+    expect(validarPrecio('100.000.001')).toEqual({ ok: false, error: 'No puede superar 100.000.000 €.' });
+  });
+
+  it('rechaza negativos, decimales de más y formato inválido', () => {
+    expect(validarPrecio('-1').ok).toBe(false);
+    expect(validarPrecio('100,999')).toEqual({ ok: false, error: 'Máximo 2 decimales.' });
+    expect(validarPrecio('1.5').error).toMatch(/coma/);
+    expect(validarPrecio('Infinity').ok).toBe(false);
   });
 });
 

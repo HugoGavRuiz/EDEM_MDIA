@@ -107,8 +107,14 @@
         <div class="campo">
           <label for="ahorro">Dinero ahorrado actualmente (€)</label>
           <input id="ahorro" name="ahorro" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="ayuda-ahorro error-ahorro">
-          <p class="ayuda" id="ayuda-ahorro">Opcional. Se usa el precio máximo que resulta de tus ingresos, el interés y el plazo.</p>
+          <p class="ayuda" id="ayuda-ahorro">Opcional. Si lo dejas vacío se toma 0 €.</p>
           <p class="error" id="error-ahorro" aria-live="polite"></p>
+        </div>
+        <div class="campo">
+          <label for="precio">Precio de la vivienda (€)</label>
+          <input id="precio" name="precio" type="text" inputmode="decimal" autocomplete="off" placeholder="200.000" aria-describedby="ayuda-precio error-precio">
+          <p class="ayuda" id="ayuda-precio">Opcional. Si lo dejas vacío se usa el precio máximo calculado con tus ingresos, el interés y el plazo.</p>
+          <p class="error" id="error-precio" aria-live="polite"></p>
         </div>
       </fieldset>
       <button type="submit">Calcular ahorro</button>
@@ -122,7 +128,14 @@
         <div class="fila"><dt>Ahorro actual</dt><dd id="ahorro-actual"></dd></div>
         <div class="fila principal"><dt>Falta por ahorrar</dt><dd id="falta-ahorro"></dd></div>
       </dl>
+      <p class="ayuda" id="origen-precio"></p>
+      <dl class="resumen" id="cuota-precio" aria-live="polite">
+        <div class="fila"><dt>Cuota de ese precio (80 % financiado)</dt><dd id="cuota-del-precio"></dd></div>
+        <div class="fila"><dt>Tu cuota máxima (35 %)</dt><dd id="cuota-maxima-ahorro"></dd></div>
+      </dl>
+      <p class="mensaje" id="aviso-cuota" aria-live="polite"></p>
       <p class="mensaje" id="mensaje-ahorro" aria-live="polite"></p>
+      <p class="ayuda" id="aclaracion-escenarios">Los escenarios se calculan sobre tu cuota máxima asumible, no sobre la cuota de este precio.</p>
       <div class="tabla-scroll" id="escenarios-ahorro" role="region" aria-labelledby="titulo-escenarios" tabindex="0">
         <table class="tabla">
           <caption id="titulo-escenarios">Meses de ahorro según el porcentaje de la cuota máxima que ahorres cada mes</caption>

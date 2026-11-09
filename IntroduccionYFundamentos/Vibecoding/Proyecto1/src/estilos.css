@@ -101,6 +101,7 @@ h3 { margin: 16px 0 8px; font-size: 1rem; }
 
 .mensaje { margin: 12px 0 0; font-weight: 600; }
 .mensaje:empty { display: none; }
+.mensaje.alerta { color: var(--error); }
 .tabla caption { padding: 8px 10px; text-align: left; font-size: 0.875rem; color: var(--suave); }
 
 .tabla-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--borde); border-radius: 8px; }
