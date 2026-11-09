@@ -77,6 +77,27 @@ describe('leerEstado', () => {
   });
 });
 
+describe('serializarEstado: qué se guarda', () => {
+  it('devuelve null si no hay nada que recordar', () => {
+    expect(serializarEstado({})).toBeNull();
+    expect(serializarEstado({ interes: '', plazo: '  ', periodo: 'mensual', pagas: '12' })).toBeNull();
+  });
+
+  it('no guarda los selectores en su valor por defecto', () => {
+    const json = serializarEstado({ interes: '3,5', periodo: 'mensual', pagas: '12' });
+    expect(JSON.parse(json)).toEqual({ interes: '3,5' });
+  });
+
+  it('sí guarda los selectores cambiados, aunque no haya texto', () => {
+    expect(JSON.parse(serializarEstado({ periodo: 'anual' }))).toEqual({ periodo: 'anual' });
+    expect(JSON.parse(serializarEstado({ pagas: '14' }))).toEqual({ pagas: '14' });
+  });
+
+  it('un selector cambiado y vuelto al valor por defecto se olvida', () => {
+    expect(serializarEstado({ periodo: 'mensual', pagas: '12' })).toBeNull();
+  });
+});
+
 describe('serializarEstado', () => {
   it('guarda solo los campos conocidos con texto', () => {
     const json = serializarEstado({ interes: '3,5', plazo: '', importe: '150.000', otro: 'x' });

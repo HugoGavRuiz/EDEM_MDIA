@@ -85,7 +85,7 @@ Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvico
   Modelo y migración Alembic de la tabla de caché, cliente httpx del BCE (parseo SDMX JSON, probado con una respuesta grabada), servicio de caché de 24 h y `GET /tipos-interes` con CORS. Si el BCE falla se sirve la caché con `desactualizado: true`; sin caché → 503.
   Comprobación: `uv run pytest` (parseo, caché fresca/antigua, BCE caído con y sin caché, endpoint, CORS); una llamada real al BCE a mano devuelve la serie actual y queda cacheada en PostgreSQL.
 
-- [ ] **Fase 15 — Interfaz en React.**
+- [x] **Fase 15 — Interfaz en React.**
   Migración completa a React 19 (Vite): estado de la página en un reductor puro (`src/logica/estadoApp.js`, con pruebas), componentes que solo pintan, mismo marcado, ids y textos para conservar la suite e2e. La persistencia sigue en `localStorage` y valida al leer; si no hay datos, se borra la clave.
   Comprobación: `npm test`, `npm run lint`, `npm run build` y las **80 pruebas e2e existentes pasan sin cambiar su lógica** (solo ajustes de selectores si hiciera falta, explicados).
 

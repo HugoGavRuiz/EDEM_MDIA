@@ -49,10 +49,15 @@ export function leerEstado(json) {
   return estado;
 }
 
+// Valores por defecto de los selectores: guardarlos no aporta nada.
+const PREDETERMINADOS = { periodo: 'mensual', pagas: '12' };
+
+// Devuelve el JSON a guardar o null si no hay nada que recordar (entonces se borra la clave).
 export function serializarEstado(valores) {
   const estado = {};
   for (const campo of Object.keys(CAMPOS_GUARDADOS)) {
-    if (esTextoUtil(valores[campo])) estado[campo] = valores[campo];
+    const valor = valores[campo];
+    if (esTextoUtil(valor) && valor !== PREDETERMINADOS[campo]) estado[campo] = valor;
   }
-  return JSON.stringify(estado);
+  return Object.keys(estado).length === 0 ? null : JSON.stringify(estado);
 }
