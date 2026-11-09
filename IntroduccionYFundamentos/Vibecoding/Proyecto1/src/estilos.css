@@ -66,6 +66,8 @@ button:hover { filter: brightness(1.1); }
 button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
 
 .seccion { margin-top: 24px; }
+.tipo-medio { margin: -4px 0 14px; }
+.tipo-medio button { margin-bottom: 4px; }
 .ayuda { margin: 4px 0 0; color: var(--suave); font-size: 0.875rem; }
 [hidden] { display: none !important; }
 

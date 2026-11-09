@@ -55,7 +55,21 @@ function ResultadoHipoteca({ resultado }) {
   );
 }
 
-export function FormularioHipoteca({ valores, errores, resultado, onCambio, onCalcular }) {
+function TipoMedio({ tipo, onUsar }) {
+  const aviso = tipo.desactualizado ? ' Este dato podría no estar al día.' : '';
+  return (
+    <div className="tipo-medio">
+      <button type="button" id="usar-tipo-medio" className="secundario" aria-describedby="nota-tipo-medio" onClick={onUsar}>
+        {`Usar el tipo medio actual (${tipo.texto} %)`}
+      </button>
+      <p className="ayuda" id="nota-tipo-medio">
+        {`Media de las nuevas hipotecas para vivienda en España en ${tipo.mes} (BCE). Es una media del mercado, no una oferta de ningún banco ni una TAE.${aviso}`}
+      </p>
+    </div>
+  );
+}
+
+export function FormularioHipoteca({ valores, errores, resultado, tipoMedio, onCambio, onCalcular }) {
   const campo = (id) => ({ id, valor: valores[id], error: errores[id], onCambio });
   return (
     <>
@@ -70,6 +84,7 @@ export function FormularioHipoteca({ valores, errores, resultado, onCambio, onCa
         <fieldset>
           <legend>Condiciones</legend>
           <Campo {...campo('interes')} etiqueta="Interés anual (%)" placeholder="3,5" />
+          {tipoMedio && <TipoMedio tipo={tipoMedio} onUsar={() => onCambio('interes', tipoMedio.texto)} />}
           <Campo {...campo('plazo')} etiqueta="Plazo (años)" placeholder="30" modo="numeric" />
         </fieldset>
 

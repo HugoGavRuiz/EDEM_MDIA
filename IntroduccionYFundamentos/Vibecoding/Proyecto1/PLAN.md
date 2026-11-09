@@ -89,7 +89,7 @@ Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvico
   Migración completa a React 19 (Vite): estado de la página en un reductor puro (`src/logica/estadoApp.js`, con pruebas), componentes que solo pintan, mismo marcado, ids y textos para conservar la suite e2e. La persistencia sigue en `localStorage` y valida al leer; si no hay datos, se borra la clave.
   Comprobación: `npm test`, `npm run lint`, `npm run build` y las **80 pruebas e2e existentes pasan sin cambiar su lógica** (solo ajustes de selectores si hiciera falta, explicados).
 
-- [ ] **Fase 16 — Tipo medio en la app.**
+- [x] **Fase 16 — Tipo medio en la app.**
   Hook que consulta `VITE_API_URL/tipos-interes`; botón «Usar el tipo medio actual (x,xx %)» con el mes del dato y el aviso de que es una media, no una oferta ni una TAE. Sin API o si falla, el botón no aparece y todo funciona igual.
   Comprobación: pruebas de la conversión valor→texto; e2e con la API simulada (disponible, caída, valor inválido ignorado) y una comprobación manual contra el backend real.
 

@@ -6,6 +6,7 @@ import { estadoInicial, reducir } from '../logica/estadoApp.js';
 import { FormularioHipoteca } from './FormularioHipoteca.jsx';
 import { SeccionAhorro } from './SeccionAhorro.jsx';
 import { SeccionCapacidad } from './SeccionCapacidad.jsx';
+import { useTipoMedio } from './useTipoMedio.js';
 
 function Avisos() {
   return (
@@ -23,6 +24,7 @@ function Avisos() {
 
 export function App() {
   const [estado, despachar] = useReducer(reducir, undefined, () => estadoInicial(leerGuardado()));
+  const tipoMedio = useTipoMedio(import.meta.env.VITE_API_URL);
 
   // Se recuerda lo escrito; si ya no hay nada que recordar (p. ej. tras borrar), se borra la clave.
   useEffect(() => {
@@ -46,7 +48,7 @@ export function App() {
       <h1>Planificador de hipoteca</h1>
       <p className="intro">Calcula tu cuota, la cuota máxima que puedes asumir y cuánto tardarás en ahorrar la entrada.</p>
 
-      <FormularioHipoteca {...propiedades} resultado={estado.resultados.hipoteca} />
+      <FormularioHipoteca {...propiedades} resultado={estado.resultados.hipoteca} tipoMedio={tipoMedio} />
       <SeccionCapacidad {...propiedades} resultado={estado.resultados.capacidad} />
       <SeccionAhorro {...propiedades} resultado={estado.resultados.ahorro} />
       <Avisos />
