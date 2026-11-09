@@ -44,7 +44,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   `src/logica/amortizacion.js` (`cuadroAmortizacionAnual`, total pagado, intereses totales) y tabla accesible (cabeceras correctas). Amplía la e2e.
   Comprobación: con `toBeCloseTo`: suma de capital ≈ importe, saldo final ≈ 0, total ≈ cuota × meses; la última fila de la tabla marca 0,00 €.
 
-- [ ] **Fase 6 — Estado compartido mínimo, persistencia y borrado.**
+- [x] **Fase 6 — Estado compartido mínimo, persistencia y borrado.**
   Módulo de estado (interés, plazo e importe en este punto; cada fase posterior amplía el esquema y su validación). `localStorage` con try/catch, datos validados al leer (JSON corrupto o valores inválidos se ignoran) y botón «Borrar datos guardados».
   Comprobación: pruebas unitarias del lector con JSON corrupto y valores inválidos; e2e: recargar conserva valores, `localStorage` corrupto inyectado con `page.addInitScript` no rompe la app, el botón borra y la app funciona con `localStorage` bloqueado.
 

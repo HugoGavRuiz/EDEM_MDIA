@@ -1,0 +1,61 @@
+import { describe, expect, it } from 'vitest';
+import { leerEstado, serializarEstado } from './estado.js';
+
+describe('leerEstado', () => {
+  it('recupera valores válidos', () => {
+    const json = JSON.stringify({ interes: '3,5', plazo: '30', importe: '150.000' });
+    expect(leerEstado(json)).toEqual({ interes: '3,5', plazo: '30', importe: '150.000' });
+  });
+
+  it.each([
+    ['null (nada guardado)', null],
+    ['undefined', undefined],
+    ['vacío', ''],
+    ['JSON corrupto', '{no es json'],
+    ['JSON cortado', '{"interes": "3,5"'],
+    ['un número', '42'],
+    ['una cadena', '"hola"'],
+    ['null en JSON', 'null'],
+    ['un array', '["3,5"]'],
+  ])('devuelve {} con %s', (_nombre, json) => {
+    expect(leerEstado(json)).toEqual({});
+  });
+
+  it('ignora los valores inválidos y conserva los válidos', () => {
+    const json = JSON.stringify({ interes: '99', plazo: '30', importe: '-5' });
+    expect(leerEstado(json)).toEqual({ plazo: '30' });
+  });
+
+  it('ignora valores que no son texto', () => {
+    const json = JSON.stringify({ interes: 3.5, plazo: ['30'], importe: { a: 1 } });
+    expect(leerEstado(json)).toEqual({});
+  });
+
+  it('ignora textos vacíos, en blanco o demasiado largos', () => {
+    const json = JSON.stringify({ interes: '', plazo: '   ', importe: '1'.repeat(100) });
+    expect(leerEstado(json)).toEqual({});
+  });
+
+  it('ignora claves desconocidas, incluida __proto__', () => {
+    const json = '{"__proto__": {"x": "1"}, "desconocido": "5", "plazo": "20"}';
+    const estado = leerEstado(json);
+    expect(estado).toEqual({ plazo: '20' });
+    expect({}.x).toBeUndefined();
+  });
+});
+
+describe('serializarEstado', () => {
+  it('guarda solo los campos conocidos con texto', () => {
+    const json = serializarEstado({ interes: '3,5', plazo: '', importe: '150.000', otro: 'x' });
+    expect(JSON.parse(json)).toEqual({ interes: '3,5', importe: '150.000' });
+  });
+
+  it('lo serializado se puede volver a leer igual', () => {
+    const valores = { interes: '3,5', plazo: '30', importe: '150.000' };
+    expect(leerEstado(serializarEstado(valores))).toEqual(valores);
+  });
+
+  it('un valor inválido guardado se descarta al leerlo', () => {
+    expect(leerEstado(serializarEstado({ interes: '3.5', plazo: '30' }))).toEqual({ plazo: '30' });
+  });
+});

@@ -65,6 +65,10 @@ button {
 button:hover { filter: brightness(1.1); }
 button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
 
+.pie { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--borde); }
+.pie p { min-height: 1.2em; margin: 8px 0 0; color: var(--suave); font-size: 0.875rem; }
+button.secundario { color: var(--texto); background: transparent; border: 1px solid var(--borde); }
+
 .resultado { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
 .resultado[hidden] { display: none; }
 h2 { margin: 0 0 8px; font-size: 1.2rem; }
