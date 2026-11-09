@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validarImporte, validarInteres, validarPlazo } from './validacion.js';
+import { validarImporte, validarIngresos, validarInteres, validarPlazo } from './validacion.js';
 
 describe('validarImporte', () => {
   it('acepta importes válidos en formato es-ES', () => {
@@ -56,6 +56,50 @@ describe('validarInteres', () => {
     expect(validarInteres('').ok).toBe(false);
     expect(validarInteres('-1').ok).toBe(false);
     expect(validarInteres('NaN').ok).toBe(false);
+  });
+});
+
+describe('validarIngresos', () => {
+  it('acepta ingresos mensuales y anuales válidos', () => {
+    expect(validarIngresos('2.000', 'mensual')).toEqual({ ok: true, valor: 2000 });
+    expect(validarIngresos('24.000,50', 'anual')).toEqual({ ok: true, valor: 24000.5 });
+  });
+
+  it('pide los ingresos si están vacíos', () => {
+    const vacio = { ok: false, error: 'Introduce tus ingresos para calcularla.' };
+    expect(validarIngresos('', 'mensual')).toEqual(vacio);
+    expect(validarIngresos('   ', 'anual')).toEqual(vacio);
+    expect(validarIngresos(undefined, 'anual')).toEqual(vacio);
+  });
+
+  it('rechaza 0 como error de validación', () => {
+    expect(validarIngresos('0', 'mensual')).toEqual({ ok: false, error: 'Debe ser mayor que 0.' });
+  });
+
+  it('aplica el máximo según el periodo, incluidos los extremos', () => {
+    expect(validarIngresos('1.000.000', 'mensual').ok).toBe(true);
+    expect(validarIngresos('1.000.001', 'mensual')).toEqual({
+      ok: false,
+      error: 'No puede superar 1.000.000 € al mes.',
+    });
+    expect(validarIngresos('12.000.000', 'anual').ok).toBe(true);
+    expect(validarIngresos('12.000.001', 'anual')).toEqual({
+      ok: false,
+      error: 'No puede superar 12.000.000 € al año.',
+    });
+    expect(validarIngresos('5.000.000', 'anual').ok).toBe(true);
+    expect(validarIngresos('5.000.000', 'mensual').ok).toBe(false);
+  });
+
+  it('rechaza más de 2 decimales, negativos y formato inválido', () => {
+    expect(validarIngresos('2000,999', 'mensual')).toEqual({ ok: false, error: 'Máximo 2 decimales.' });
+    expect(validarIngresos('-5', 'mensual').ok).toBe(false);
+    expect(validarIngresos('2.5', 'mensual').error).toMatch(/coma/);
+    expect(validarIngresos('Infinity', 'mensual').ok).toBe(false);
+  });
+
+  it('lanza si el periodo no es mensual ni anual', () => {
+    expect(() => validarIngresos('2000', 'semanal')).toThrow(RangeError);
   });
 });
 

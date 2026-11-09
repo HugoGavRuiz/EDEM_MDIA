@@ -48,7 +48,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Módulo de estado (interés, plazo e importe en este punto; cada fase posterior amplía el esquema y su validación). `localStorage` con try/catch, datos validados al leer (JSON corrupto o valores inválidos se ignoran) y botón «Borrar datos guardados».
   Comprobación: pruebas unitarias del lector con JSON corrupto y valores inválidos; e2e: recargar conserva valores, `localStorage` corrupto inyectado con `page.addInitScript` no rompe la app, el botón borra y la app funciona con `localStorage` bloqueado.
 
-- [ ] **Fase 7 — Cuota máxima asumible.**
+- [x] **Fase 7 — Cuota máxima asumible.**
   `src/logica/capacidad.js`: ingreso neto mensual o anual (anual ÷ 12), selector 12/14 pagas con texto aclaratorio visible («las pagas se prorratean: el ingreso mensual es el anual ÷ 12 en ambos casos») y `RATIO_ENDEUDAMIENTO = 0,35` en `src/logica/constantes.js`. Ingresos vacíos = «no introducidos» (cuota no disponible); ingresos 0 = error de validación. Persiste en el estado. Aviso del 35 % orientativo.
   Comprobación: 2.000 €/mes → 700 €; 24.000 €/año → 700 €; 12 y 14 pagas dan exactamente el mismo resultado (prueba específica); entradas inválidas rechazadas; mensaje «Introduce tus ingresos» sin datos.
 

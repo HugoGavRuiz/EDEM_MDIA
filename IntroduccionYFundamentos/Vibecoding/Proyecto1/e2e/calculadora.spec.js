@@ -6,7 +6,7 @@ async function rellenar(page, { interes, plazo, importe }) {
   await page.getByLabel('Importe del préstamo').fill(importe);
 }
 
-const calcular = (page) => page.getByRole('button', { name: 'Calcular cuota' }).click();
+const calcular = (page) => page.getByRole('button', { name: 'Calcular cuota', exact: true }).click();
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -107,5 +107,5 @@ test('es usable a 375 px: sin desplazamiento horizontal y calcula', async ({ pag
   await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
   await calcular(page);
   await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
-  await expect(page.getByRole('button', { name: 'Calcular cuota' })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Calcular cuota', exact: true })).toBeInViewport();
 });

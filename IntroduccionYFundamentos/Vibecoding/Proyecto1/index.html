@@ -61,6 +61,49 @@
       </div>
     </section>
 
+    <form id="form-capacidad" class="seccion" novalidate>
+      <fieldset>
+        <legend>Cuota máxima que puedes asumir</legend>
+        <div class="campo">
+          <label for="ingresos">Ingresos netos (€)</label>
+          <input id="ingresos" name="ingresos" type="text" inputmode="decimal" autocomplete="off" placeholder="2.000" aria-describedby="error-ingresos">
+          <p class="error" id="error-ingresos" aria-live="polite"></p>
+        </div>
+        <div class="campo">
+          <label for="periodo">Los ingresos son</label>
+          <select id="periodo" name="periodo">
+            <option value="mensual">mensuales</option>
+            <option value="anual">anuales</option>
+          </select>
+        </div>
+        <div class="campo" id="campo-pagas" hidden>
+          <label for="pagas">Número de pagas</label>
+          <select id="pagas" name="pagas" aria-describedby="ayuda-pagas">
+            <option value="12">12 pagas</option>
+            <option value="14">14 pagas</option>
+          </select>
+          <p class="ayuda" id="ayuda-pagas">Las pagas se prorratean: el ingreso mensual es el anual ÷ 12 tanto con 12 como con 14 pagas.</p>
+        </div>
+      </fieldset>
+      <button type="submit">Calcular cuota máxima</button>
+    </form>
+
+    <section class="resultado" id="resultado-capacidad" aria-labelledby="titulo-capacidad" hidden>
+      <h2 id="titulo-capacidad">Cuota máxima asumible</h2>
+      <dl class="resumen" aria-live="polite">
+        <div class="fila"><dt>Ingreso neto mensual</dt><dd id="ingreso-mensual"></dd></div>
+        <div class="fila principal"><dt>Cuota máxima (35 %)</dt><dd id="cuota-maxima"></dd></div>
+      </dl>
+    </section>
+
+    <section class="avisos" aria-labelledby="titulo-avisos">
+      <h2 id="titulo-avisos">Avisos</h2>
+      <ul>
+        <li>El interés es nominal (no TAE) y no se incluyen seguros ni comisiones.</li>
+        <li>El 35 % de endeudamiento es orientativo; no se descuentan deudas previas ni se tienen en cuenta los ingresos del hogar.</li>
+      </ul>
+    </section>
+
     <footer class="pie">
       <button type="button" id="borrar-datos" class="secundario">Borrar datos guardados</button>
       <p id="mensaje-borrado" role="status"></p>

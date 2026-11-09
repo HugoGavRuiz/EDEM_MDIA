@@ -1,13 +1,19 @@
 // Estado compartido que se recuerda entre visitas: los textos de los campos.
 // Cada fase que añade un campo lo registra aquí con su validador.
 // Lo guardado no es de fiar: al leer se valida todo y lo inválido se ignora.
+// El orden importa: un validador puede usar los campos ya leídos (los ingresos dependen del periodo).
 
-import { validarImporte, validarInteres, validarPlazo } from './validacion.js';
+import { PERIODOS, validarImporte, validarIngresos, validarInteres, validarPlazo } from './validacion.js';
+
+const unoDe = (opciones) => (valor) => ({ ok: opciones.includes(valor) });
 
 export const CAMPOS_GUARDADOS = {
   interes: validarInteres,
   plazo: validarPlazo,
   importe: validarImporte,
+  periodo: unoDe(PERIODOS),
+  pagas: unoDe(['12', '14']),
+  ingresos: (valor, estado) => validarIngresos(valor, estado.periodo ?? 'mensual'),
 };
 
 const MAX_LONGITUD = 40;
@@ -28,7 +34,7 @@ export function leerEstado(json) {
   const estado = {};
   for (const [campo, validar] of Object.entries(CAMPOS_GUARDADOS)) {
     const valor = Object.hasOwn(datos, campo) ? datos[campo] : undefined;
-    if (esTextoUtil(valor) && validar(valor).ok) estado[campo] = valor;
+    if (esTextoUtil(valor) && validar(valor, estado).ok) estado[campo] = valor;
   }
   return estado;
 }

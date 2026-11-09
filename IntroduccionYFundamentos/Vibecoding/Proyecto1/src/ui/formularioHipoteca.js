@@ -1,64 +1,41 @@
-// DOM fino: lee los campos, delega en la lógica pura y pinta errores y resultado con textContent.
+// Calculadora de hipoteca: lee los campos, delega en la lógica pura y pinta el resultado.
 
 import { calcularHipoteca } from '../logica/calculadora.js';
 import { formatearEuros } from '../logica/formato.js';
+import { elemento, enlazarLimpieza, escribir, limpiarError, mostrarErrores, valorDe } from './campos.js';
 import { rellenarFilas } from './tabla.js';
 
 const CAMPOS = ['interes', 'plazo', 'importe'];
 
+function mostrarResultado(calculo) {
+  escribir('cuota', formatearEuros(calculo.cuota));
+  escribir('total', formatearEuros(calculo.total));
+  escribir('intereses', formatearEuros(calculo.intereses));
+  rellenarFilas(
+    elemento('tabla-amortizacion'),
+    calculo.cuadro.map((f) => [
+      String(f.anio),
+      formatearEuros(f.intereses),
+      formatearEuros(f.capital),
+      formatearEuros(f.saldo),
+    ]),
+  );
+  elemento('resultado').hidden = false;
+}
+
 export function iniciarFormularioHipoteca() {
-  const formulario = document.getElementById('form-hipoteca');
-  const resultado = document.getElementById('resultado');
+  enlazarLimpieza(CAMPOS);
 
-  const campo = (nombre) => formulario.elements[nombre];
-  const error = (nombre) => document.getElementById(`error-${nombre}`);
-  const escribir = (id, texto) => { document.getElementById(id).textContent = texto; };
-
-  function limpiarError(nombre) {
-    error(nombre).textContent = '';
-    campo(nombre).removeAttribute('aria-invalid');
-  }
-
-  function mostrarError(nombre, mensaje) {
-    error(nombre).textContent = mensaje;
-    campo(nombre).setAttribute('aria-invalid', 'true');
-  }
-
-  function mostrarResultado(calculo) {
-    escribir('cuota', formatearEuros(calculo.cuota));
-    escribir('total', formatearEuros(calculo.total));
-    escribir('intereses', formatearEuros(calculo.intereses));
-    rellenarFilas(
-      document.getElementById('tabla-amortizacion'),
-      calculo.cuadro.map((f) => [
-        String(f.anio),
-        formatearEuros(f.intereses),
-        formatearEuros(f.capital),
-        formatearEuros(f.saldo),
-      ]),
-    );
-    resultado.hidden = false;
-  }
-
-  CAMPOS.forEach((nombre) => {
-    campo(nombre).addEventListener('input', () => limpiarError(nombre));
-  });
-
-  formulario.addEventListener('submit', (evento) => {
+  elemento('form-hipoteca').addEventListener('submit', (evento) => {
     evento.preventDefault();
     CAMPOS.forEach(limpiarError);
 
-    const valores = Object.fromEntries(CAMPOS.map((nombre) => [nombre, campo(nombre).value]));
-    const calculo = calcularHipoteca(valores);
-
+    const calculo = calcularHipoteca(Object.fromEntries(CAMPOS.map((id) => [id, valorDe(id)])));
     if (!calculo.ok) {
-      resultado.hidden = true;
-      const conError = CAMPOS.filter((nombre) => calculo.errores[nombre]);
-      conError.forEach((nombre) => mostrarError(nombre, calculo.errores[nombre]));
-      campo(conError[0]).focus();
+      elemento('resultado').hidden = true;
+      mostrarErrores(calculo.errores, CAMPOS);
       return;
     }
-
     mostrarResultado(calculo);
   });
 }

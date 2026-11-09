@@ -65,6 +65,25 @@ button {
 button:hover { filter: brightness(1.1); }
 button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
 
+.seccion { margin-top: 24px; }
+.ayuda { margin: 4px 0 0; color: var(--suave); font-size: 0.875rem; }
+[hidden] { display: none !important; }
+
+select {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+select:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.35); border-color: var(--acento); }
+
+.avisos { margin-top: 24px; padding: 12px 14px; background: var(--fondo); border-radius: 8px; font-size: 0.875rem; color: var(--suave); }
+.avisos h2 { margin-bottom: 4px; font-size: 1rem; }
+.avisos ul { margin: 0; padding-left: 18px; }
+
 .pie { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--borde); }
 .pie p { min-height: 1.2em; margin: 8px 0 0; color: var(--suave); font-size: 0.875rem; }
 button.secundario { color: var(--texto); background: transparent; border: 1px solid var(--borde); }

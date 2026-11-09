@@ -9,6 +9,7 @@ export const LIMITES = {
   importe: { maximo: 100_000_000, decimales: 2 },
   interes: { maximo: 20, decimales: 3 },
   plazo: { minimo: 1, maximo: 40, decimales: 0 },
+  ingresos: { mensual: 1_000_000, anual: 12_000_000, decimales: 2 },
 };
 
 const error = (mensaje) => ({ ok: false, error: mensaje });
@@ -34,6 +35,24 @@ export function validarInteres(texto) {
   const { maximo, decimales } = LIMITES.interes;
   if (p.valor > maximo) return error(`No puede superar el ${formato.format(maximo)} %.`);
   const errorDecimales = validarDecimales(p, decimales);
+  return errorDecimales ? error(errorDecimales) : { ok: true, valor: p.valor };
+}
+
+export const PERIODOS = ['mensual', 'anual'];
+
+export function validarIngresos(texto, periodo) {
+  if (!PERIODOS.includes(periodo)) throw new RangeError(`periodo desconocido: ${periodo}`);
+  if (typeof texto !== 'string' || texto.trim() === '') {
+    return error('Introduce tus ingresos para calcularla.');
+  }
+  const p = parsearNumero(texto);
+  if (!p.ok) return p;
+  const maximo = LIMITES.ingresos[periodo];
+  if (p.valor <= 0) return error('Debe ser mayor que 0.');
+  if (p.valor > maximo) {
+    return error(`No puede superar ${formato.format(maximo)} € ${periodo === 'anual' ? 'al año' : 'al mes'}.`);
+  }
+  const errorDecimales = validarDecimales(p, LIMITES.ingresos.decimales);
   return errorDecimales ? error(errorDecimales) : { ok: true, valor: p.valor };
 }
 

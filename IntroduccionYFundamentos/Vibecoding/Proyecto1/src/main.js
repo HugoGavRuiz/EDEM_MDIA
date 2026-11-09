@@ -1,9 +1,13 @@
 import './estilos.css';
-import { iniciarFormularioHipoteca } from './ui/formularioHipoteca.js';
 import { borrarGuardado, guardarCampos, restaurarCampos } from './ui/almacenamiento.js';
+import { iniciarInvalidacion } from './ui/dependencias.js';
+import { iniciarFormularioHipoteca } from './ui/formularioHipoteca.js';
+import { iniciarSeccionCapacidad, sincronizarPagas } from './ui/seccionCapacidad.js';
 
 restaurarCampos();
 iniciarFormularioHipoteca();
+iniciarSeccionCapacidad();
+iniciarInvalidacion();
 
 document.addEventListener('input', guardarCampos);
 
@@ -13,5 +17,6 @@ document.getElementById('borrar-datos').addEventListener('click', () => {
   document.querySelectorAll('.error').forEach((elemento) => { elemento.textContent = ''; });
   document.querySelectorAll('[aria-invalid]').forEach((elemento) => elemento.removeAttribute('aria-invalid'));
   document.querySelectorAll('.resultado').forEach((elemento) => { elemento.hidden = true; });
+  sincronizarPagas();
   document.getElementById('mensaje-borrado').textContent = 'Datos guardados borrados.';
 });

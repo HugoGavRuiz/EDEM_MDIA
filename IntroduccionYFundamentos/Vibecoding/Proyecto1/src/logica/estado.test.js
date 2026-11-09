@@ -26,6 +26,27 @@ describe('leerEstado', () => {
     expect(leerEstado(json)).toEqual({ plazo: '30' });
   });
 
+  it('recupera ingresos, periodo y pagas', () => {
+    const valores = { periodo: 'anual', pagas: '14', ingresos: '30.000' };
+    expect(leerEstado(JSON.stringify(valores))).toEqual(valores);
+  });
+
+  it('valida los ingresos con el periodo guardado', () => {
+    const anual = JSON.stringify({ periodo: 'anual', ingresos: '5.000.000' });
+    expect(leerEstado(anual)).toEqual({ periodo: 'anual', ingresos: '5.000.000' });
+    const mensual = JSON.stringify({ periodo: 'mensual', ingresos: '5.000.000' });
+    expect(leerEstado(mensual)).toEqual({ periodo: 'mensual' });
+  });
+
+  it('sin periodo válido valida los ingresos como mensuales', () => {
+    const json = JSON.stringify({ periodo: 'semanal', ingresos: '5.000.000' });
+    expect(leerEstado(json)).toEqual({});
+  });
+
+  it('ignora pagas distintas de 12 o 14', () => {
+    expect(leerEstado(JSON.stringify({ pagas: '13' }))).toEqual({});
+  });
+
   it('ignora valores que no son texto', () => {
     const json = JSON.stringify({ interes: 3.5, plazo: ['30'], importe: { a: 1 } });
     expect(leerEstado(json)).toEqual({});

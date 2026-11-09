@@ -23,7 +23,7 @@ test('con localStorage corrupto la app arranca vacía y sin errores', async ({ p
   await page.addInitScript((clave) => localStorage.setItem(clave, '{no es json'), CLAVE);
   await page.goto('/');
   await expect(page.getByLabel('Interés anual')).toHaveValue('');
-  await page.getByRole('button', { name: 'Calcular cuota' }).click();
+  await page.getByRole('button', { name: 'Calcular cuota', exact: true }).click();
   await expect(page.locator('#error-interes')).toHaveText('Introduce un número.');
   expect(errores).toEqual([]);
 });
@@ -49,7 +49,7 @@ test('con localStorage bloqueado la app sigue funcionando', async ({ page }) => 
   });
   await page.goto('/');
   await rellenar(page);
-  await page.getByRole('button', { name: 'Calcular cuota' }).click();
+  await page.getByRole('button', { name: 'Calcular cuota', exact: true }).click();
   await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
   expect(errores).toEqual([]);
 });
@@ -57,7 +57,7 @@ test('con localStorage bloqueado la app sigue funcionando', async ({ page }) => 
 test('el botón borra lo guardado, vacía los campos y oculta el resultado', async ({ page }) => {
   await page.goto('/');
   await rellenar(page);
-  await page.getByRole('button', { name: 'Calcular cuota' }).click();
+  await page.getByRole('button', { name: 'Calcular cuota', exact: true }).click();
   await expect(page.locator('#resultado')).toBeVisible();
 
   await page.getByRole('button', { name: 'Borrar datos guardados' }).click();
