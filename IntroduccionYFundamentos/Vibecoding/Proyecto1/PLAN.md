@@ -28,7 +28,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Commit: `CLAUDE.md`, `PLAN.md`, `docs/project-info.md`, `package.json`, `package-lock.json`, `index.html`, `.gitignore`, `.env.example`, `.nvmrc`.
   Comprobación: `npm run dev` muestra el título; `npm run build` sin errores; `git status` sin `node_modules`, `dist` ni `.env`; el `.DS_Store` de la raíz no entra en el commit.
 
-- [ ] **Fase 2 — Lógica base.**
+- [x] **Fase 2 — Lógica base.**
   Dependencia: `vitest`. `src/logica/hipoteca.js` (`cuotaMensual`, con interés 0 %), `src/logica/validacion.js` (reglas por campo, rechaza NaN/Infinity) y `src/logica/parseo.js` (es-ES), con sus pruebas. Si se pasa de una sesión, el parseo se separa a otra.
   Comprobación: `npm test`: 150.000 €, 3,5 %, 30 años ≈ 673,57 €; interés 0 %; tabla de parseo (`3,5` → 3,5; `150.000` → 150000; `150.000,50` válido; rechaza `3.5`, `1,234.5`, `-1`, `1e3`, `3%`, `€`, `Infinity`, `NaN`, varias comas, espacios internos, vacío); límites de cada campo.
 
