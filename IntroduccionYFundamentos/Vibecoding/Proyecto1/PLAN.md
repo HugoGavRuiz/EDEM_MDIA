@@ -32,7 +32,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Dependencia: `vitest`. `src/logica/hipoteca.js` (`cuotaMensual`, con interés 0 %), `src/logica/validacion.js` (reglas por campo, rechaza NaN/Infinity) y `src/logica/parseo.js` (es-ES), con sus pruebas. Si se pasa de una sesión, el parseo se separa a otra.
   Comprobación: `npm test`: 150.000 €, 3,5 %, 30 años ≈ 673,57 €; interés 0 %; tabla de parseo (`3,5` → 3,5; `150.000` → 150000; `150.000,50` válido; rechaza `3.5`, `1,234.5`, `-1`, `1e3`, `3%`, `€`, `Infinity`, `NaN`, varias comas, espacios internos, vacío); límites de cada campo.
 
-- [ ] **Fase 3 — ESLint.**
+- [x] **Fase 3 — ESLint.**
   Dependencias: `eslint`, `@eslint/js`, `globals`. Configuración plana y script `lint`.
   Comprobación: `npm run lint` sin errores ni avisos sobre el código existente; una violación provocada a propósito (y revertida) falla.
 
