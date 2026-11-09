@@ -1,7 +1,7 @@
 # Project info
 
 ## Qué es
-Aplicación web nueva, en español, para planificar la compra de una vivienda con hipoteca. Proyecto desde cero (no hay código previo). Una sola página con tres herramientas que comparten datos: **calculadora de hipoteca** (sistema francés, cuota constante), **cuota máxima asumible** según ingresos y **tiempo de ahorro** hasta reunir entrada e impuestos.
+Aplicación web en español para planificar la compra de una vivienda con hipoteca. Tres herramientas que comparten datos en una sola página: **calculadora de hipoteca** (sistema francés, cuota constante), **cuota máxima asumible** según ingresos y **tiempo de ahorro** hasta reunir entrada e impuestos. Un pequeño backend ofrece el **tipo de interés medio** de las hipotecas en España (dato oficial del BCE) para orientar el campo de interés.
 
 ## Usuario
 Persona particular que estudia comprar una vivienda en España y quiere saber, sin registrarse ni enviar datos a ningún sitio, cuánto puede pagar y cuánto tiempo tardará en ahorrar lo necesario. Uso individual, en el navegador, en móvil o escritorio.
@@ -23,7 +23,16 @@ Persona particular que estudia comprar una vivienda en España y quiere saber, s
    - Si falta dinero y no hay cuota máxima (ingresos no introducidos): mensaje claro «sin ingresos no se puede calcular un ahorro». Nunca `Infinity` ni `NaN`.
    - Se supone ahorro constante, sin rentabilidad ni inflación.
 4. **Precio concreto.** El usuario puede probar un precio de vivienda. Se muestra la cuota de ese precio al 80 % de financiación (con interés y plazo comunes) y se avisa si supera la cuota máxima del 35 %. Los escenarios de ahorro usan siempre la cuota máxima, no la de ese precio, y la pantalla lo aclara. Es independiente del importe de la calculadora (el importe es del préstamo; el precio, de la vivienda).
-5. **Datos guardados.** Los últimos valores se recuerdan en el navegador; hay un botón «Borrar datos guardados».
+5. **Tipo de interés medio (backend).** Si el backend está disponible, un botón «Usar el tipo medio actual» rellena el interés con la media de las nuevas hipotecas para vivienda en España (BCE), con el mes del dato y un aviso: es una media del mercado, no una oferta de ningún banco ni una TAE. Si el backend no responde, el botón no aparece y la app funciona igual.
+6. **Datos guardados.** Los últimos valores se recuerdan en el navegador; hay un botón «Borrar datos guardados».
+
+## API (backend)
+FastAPI + PostgreSQL. Los cálculos NO viven aquí: se quedan en el navegador (`src/logica/`); el backend solo sirve datos externos y los cachea.
+- `GET /salud` → `{"estado": "ok"}` (el servicio está vivo).
+- `GET /salud/db` → comprueba la conexión con PostgreSQL (`200` o `503`).
+- `GET /tipos-interes` → último dato y serie reciente del tipo medio de nuevas hipotecas para vivienda a hogares en España: `{ "fuente", "serie", "ultimo": { "periodo": "2026-09", "valor": 2.99 }, "observaciones": [...], "actualizado_en" }`. Responde desde la caché de PostgreSQL; si tiene más de 24 h intenta refrescarla desde el BCE y, si el BCE falla, sirve lo que haya con `desactualizado: true`. Sin caché y sin BCE → `503`.
+- **Fuente:** API del BCE (SDMX, pública y sin clave), serie `MIR/M.ES.B.A2C.AM.R.A.2250.EUR.N` (tipo anualizado acordado, nuevas operaciones, préstamos a hogares para vivienda en España). Es una **media de todas las entidades**, nominal (no TAE), sin seguros ni comisiones, con un mes de retraso. No existe una API pública con los tipos de cada banco.
+- CORS: solo los orígenes de `CORS_ORIGINS`.
 
 ## Flujo entre herramientas
 Una sola página con **estado compartido**. Distribución: bloque «Condiciones» (interés y plazo, comunes), calculadora (importe), ingresos y ahorro. Qué muestra cada herramienta si faltan datos:
@@ -61,39 +70,50 @@ Una sola página con **estado compartido**. Distribución: bloque «Condiciones�
 - El 35 % de endeudamiento y el 10 % de impuestos son orientativos: el ITP varía por comunidad y no se cuentan notaría ni registro.
 - No se tienen en cuenta ingresos del hogar ni deudas previas.
 - El ahorro se supone constante, sin rentabilidad ni inflación.
+- El tipo medio del BCE es una media del mercado con un mes de retraso: no es una oferta de ningún banco, no es una TAE y no incluye seguros ni comisiones.
 
 ## Datos
 - **Entradas del usuario:** importe, interés anual, plazo, ingresos netos (+ periodicidad y nº de pagas), ahorro actual, precio concreto opcional.
 - **Constantes de negocio:** ratio de endeudamiento 35 %, entrada 20 %, impuestos 10 %, financiación 80 %, escenarios de ahorro `[100, 75, 50, 25]`.
-- **Persistencia:** solo `localStorage` del navegador. Al leer se **valida** todo (JSON corrupto o valores inválidos se ignoran). Puede no estar disponible y la app debe funcionar igual. Botón para borrar lo guardado.
-- **Sin backend, sin base de datos, sin cuentas y sin datos personales enviados.** Nada de claves ni secretos; si algún día hiciera falta configuración, irá en `.env` (con `.env.example` sin valores).
+- **En el navegador:** los datos del usuario solo se recuerdan en `localStorage`. Al leer se **valida** todo (JSON corrupto o valores inválidos se ignoran). Puede no estar disponible y la app debe funcionar igual. Botón para borrar lo guardado. **Los datos del usuario nunca se envían al backend.**
+- **En PostgreSQL:** una tabla de caché con los tipos de interés del BCE (periodo, valor, serie, fecha de descarga). Sin usuarios, sin cuentas y sin datos personales.
+- **Configuración y secretos:** en `.env` (nunca en git); `.env.example` solo tiene los nombres: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`, `API_HOST`, `API_PORT`, `CORS_ORIGINS` y `VITE_API_URL`. Todo lo que empieza por `VITE_` llega al navegador: nada secreto ahí. El `.env` local usa una contraseña de desarrollo de usar y tirar; la base de datos real sería producción.
 
 ## Tecnología
-- HTML + CSS + JavaScript (módulos ES), sin framework.
-- **Vite** (servidor y build), **Vitest** (pruebas unitarias junto al código, `*.test.js`), **ESLint** con `@eslint/js` y `globals`, **Playwright** (e2e en `e2e/`).
+- **Frontend:** React 19 + Vite, JavaScript (sin TypeScript). La lógica de negocio (cálculos, validación, parseo, geometría del gráfico, estado y lectura de lo guardado) son módulos puros en `src/logica/`, cada uno con su `*.test.js` al lado; los componentes de `src/componentes/` solo pintan y delegan. Los errores se muestran como texto (React escapa), nunca con HTML en bruto.
+- **Backend:** Python 3.14, FastAPI, SQLAlchemy, psycopg 3, Alembic (migraciones), httpx (cliente del BCE), pydantic-settings (configuración desde `.env`). Gestor de paquetes: `uv`.
+- **Base de datos:** PostgreSQL en Docker (Docker Compose).
+- **Pruebas y calidad:** Vitest, Playwright (Chromium), ESLint (frontend); pytest y ruff (backend).
 - Node: `engines` `^22.12.0 || ^24.0.0 || >=26.0.0` (el límite lo marca Vitest 5) y `.nvmrc` con 26.
-- Estructura: lógica de negocio, validación, parseo, geometría del gráfico y lectura de lo guardado como módulos puros en `src/logica/` (cada uno con su `*.test.js` al lado); en `src/ui/` solo DOM fino (formularios, tablas, gráfico SVG, `localStorage`). Los errores se escriben con `textContent`, nunca con `innerHTML`. Máximo 500 líneas por archivo.
 - Una página con tres formularios independientes (`form-hipoteca`, `form-capacidad`, `form-ahorro`): Enter en un campo ejecuta el cálculo de su propio formulario. Interés y plazo viven en el primero y los usan los tres. Al cambiar un campo se ocultan los resultados que dependen de él.
-- Las dependencias se instalan de una en una, avisando antes, comprobando que existen y que son compatibles con la versión de Vite. Todas son de desarrollo. Playwright descarga navegadores (cientos de MB): se avisa antes.
+- Estructura: `src/` (frontend), `backend/` (API), `e2e/`, `docker-compose.yml`. Máximo 500 líneas por archivo.
+- Las dependencias se instalan de una en una, avisando antes, comprobando que existen y que son compatibles. Playwright descarga navegadores (cientos de MB): se avisa antes.
 - Accesibilidad básica: labels asociadas, errores con `aria-live`, tablas con cabeceras correctas, diseño usable en móvil.
 
 ## Cómo se arrancará
 ```
-npm install
+cp .env.example .env              # y rellena los valores (nunca se sube a git)
+docker compose up -d db           # PostgreSQL local
+cd backend && uv sync             # dependencias del backend
+uv run alembic upgrade head       # crea las tablas
+uv run uvicorn app.main:app --reload --port 8000   # API en http://localhost:8000 (docs en /docs)
+cd .. && npm install
 npx playwright install chromium   # solo la primera vez (≈100 MB, para las pruebas e2e)
-npm run dev                       # servidor local de Vite en http://localhost:5173
+npm run dev                       # frontend en http://localhost:5173
 npm run build                     # build de producción en dist/ (no se publica nada sin permiso)
 ```
-Requiere Node `^22.12.0 || ^24.0.0 || >=26.0.0` (ver `.nvmrc`). Todos los comandos están disponibles: `dev`, `build`, `test`, `lint` y `test:e2e`.
+`docker compose up -d` (sin nombre) levanta también la API en un contenedor. Node: ver `.nvmrc`.
 
 ## Cómo se probará
-- `npm test` — Vitest sobre `src/logica`: cuota, amortización, cuota máxima, préstamo y precio máximos, escenarios de ahorro, parseo y validación, lectura de lo guardado. Casos límite: interés 0 % (también en préstamo máximo), ahorro ≥ objetivo, cuota máxima 0, redondeo hacia arriba, el selector 12/14 no altera el resultado.
-- `npm run test:e2e` — Playwright (Chromium) en `e2e/`: calculadora, cuota máxima, ahorro y precio concreto, persistencia (incluido `localStorage` corrupto o bloqueado), botón de borrado, límites de cada campo, flujo completo, accesibilidad (etiquetas, `aria-live`, tablas, orden de tabulación, foco) y vista móvil a 375 px. Arranca su propio servidor en el puerto 5174. La interfaz se prueba con e2e (sin jsdom/happy-dom); si resultara lenta o frágil, se valoraría `happy-dom`.
+- `npm test` — Vitest sobre `src/logica`: cuota, amortización, cuota máxima, préstamo y precio máximos, escenarios de ahorro, parseo y validación, estado de la app, lectura de lo guardado. Casos límite: interés 0 % (también en préstamo máximo), ahorro ≥ objetivo, cuota máxima 0, redondeo hacia arriba, el selector 12/14 no altera el resultado.
+- `npm run test:e2e` — Playwright (Chromium) en `e2e/`: calculadora, cuota máxima, ahorro y precio concreto, persistencia (incluido `localStorage` corrupto o bloqueado), borrado, límites de cada campo, flujo completo, accesibilidad y vista móvil a 375 px, y el botón del tipo medio con la API simulada (disponible y caída). Arranca su propio servidor en el puerto 5174. La interfaz se prueba con e2e (sin jsdom/happy-dom).
 - `npm run lint` — ESLint sin errores ni avisos.
+- `cd backend && uv run pytest` — pruebas del backend: configuración, rutas, cliente del BCE (con respuestas grabadas, sin red), caché en PostgreSQL (necesita `docker compose up -d db`).
+- `cd backend && uv run ruff check . && uv run ruff format --check .` — linter y formato del backend.
 - Antes de dar nada por terminado se ejecutan todas y se muestra el resultado. Los bugs se corrigen escribiendo primero una prueba que falle.
 
 ## Git
 La raíz del repositorio es `MDIA CLASE`. Los commits añaden archivos con rutas explícitas dentro de `Proyecto1/` y nunca incluyen el `.DS_Store` de la raíz. Solo commits locales; el push lo hace el usuario.
 
 ## Producción
-Fuera de alcance por ahora: no hay despliegue ni publicación. Cualquier acción de ese tipo requiere permiso explícito para esa acción concreta.
+Fuera de alcance por ahora: no hay despliegue ni publicación de nada (frontend, API ni base de datos). El único hosting probado fue un Netlify Drop temporal del `dist/` estático, que no incluye backend. Cualquier acción de este tipo requiere permiso explícito para esa acción concreta.

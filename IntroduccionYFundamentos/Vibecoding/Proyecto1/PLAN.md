@@ -72,4 +72,25 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Playwright con el flujo completo, revisión de accesibilidad (labels, `aria-live`, tabla, móvil, foco) y de los avisos de `docs/project-info.md`; comprobar el botón de borrado y los máximos de cada campo.
   Comprobación: `npm test`, `npm run lint`, `npm run test:e2e` y `npm run build` en verde, con la salida mostrada.
 
+## Ampliación: API, base de datos y React
+Decidido con el usuario: PostgreSQL + Docker, FastAPI y React. Los cálculos se quedan en el navegador (sin duplicarlos en Python); el backend sirve y cachea el tipo de interés medio del BCE. Sin usuarios ni datos personales. Cada fase conserva la regla de pruebas, lint y un commit local.
+
+Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg[binary]`, `pydantic-settings` (fase 13); `alembic`, `httpx` (fase 14); `pytest`, `ruff` (dev, fase 13). Frontend: `react`, `react-dom`, `@vitejs/plugin-react`, `eslint-plugin-react-hooks` (fase 15; `eslint-plugin-react` no admite ESLint 10).
+
+- [ ] **Fase 13 — Backend base.**
+  `docker-compose.yml` con PostgreSQL (y la API en contenedor), `backend/` con FastAPI, configuración desde `.env`, `GET /salud` y `GET /salud/db`, `pytest` y `ruff`. El `.env` local lleva una contraseña de desarrollo.
+  Comprobación: `docker compose up -d db`; `uv run pytest` y `ruff` en verde; `curl /salud` → 200; `/salud/db` → 200 con la base arriba y 503 con la base parada; `.env` fuera de git.
+
+- [ ] **Fase 14 — Tipos de interés del BCE.**
+  Modelo y migración Alembic de la tabla de caché, cliente httpx del BCE (parseo SDMX JSON, probado con una respuesta grabada), servicio de caché de 24 h y `GET /tipos-interes` con CORS. Si el BCE falla se sirve la caché con `desactualizado: true`; sin caché → 503.
+  Comprobación: `uv run pytest` (parseo, caché fresca/antigua, BCE caído con y sin caché, endpoint, CORS); una llamada real al BCE a mano devuelve la serie actual y queda cacheada en PostgreSQL.
+
+- [ ] **Fase 15 — Interfaz en React.**
+  Migración completa a React 19 (Vite): estado de la página en un reductor puro (`src/logica/estadoApp.js`, con pruebas), componentes que solo pintan, mismo marcado, ids y textos para conservar la suite e2e. La persistencia sigue en `localStorage` y valida al leer; si no hay datos, se borra la clave.
+  Comprobación: `npm test`, `npm run lint`, `npm run build` y las **80 pruebas e2e existentes pasan sin cambiar su lógica** (solo ajustes de selectores si hiciera falta, explicados).
+
+- [ ] **Fase 16 — Tipo medio en la app.**
+  Hook que consulta `VITE_API_URL/tipos-interes`; botón «Usar el tipo medio actual (x,xx %)» con el mes del dato y el aviso de que es una media, no una oferta ni una TAE. Sin API o si falla, el botón no aparece y todo funciona igual.
+  Comprobación: pruebas de la conversión valor→texto; e2e con la API simulada (disponible, caída, valor inválido ignorado) y una comprobación manual contra el backend real.
+
 Fuera de plan: despliegue/publicación (requiere permiso explícito aparte).
