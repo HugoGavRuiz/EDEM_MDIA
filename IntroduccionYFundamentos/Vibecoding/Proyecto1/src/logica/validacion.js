@@ -14,6 +14,8 @@ export const LIMITES = {
 
 const error = (mensaje) => ({ ok: false, error: mensaje });
 
+export const estaVacio = (texto) => typeof texto !== 'string' || texto.trim() === '';
+
 function validarDecimales(parseado, maximo, mensajeEntero) {
   if (parseado.decimales <= maximo) return null;
   return maximo === 0 ? mensajeEntero : `Máximo ${maximo} decimales.`;
@@ -42,7 +44,7 @@ export const PERIODOS = ['mensual', 'anual'];
 
 export function validarIngresos(texto, periodo) {
   if (!PERIODOS.includes(periodo)) throw new RangeError(`periodo desconocido: ${periodo}`);
-  if (typeof texto !== 'string' || texto.trim() === '') {
+  if (estaVacio(texto)) {
     return error('Introduce tus ingresos para calcularla.');
   }
   const p = parsearNumero(texto);

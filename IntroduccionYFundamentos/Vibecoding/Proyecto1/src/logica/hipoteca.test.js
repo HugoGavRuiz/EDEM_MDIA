@@ -1,5 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { cuotaMensual } from './hipoteca.js';
+import { cuotaMensual, prestamoMaximo } from './hipoteca.js';
+
+describe('prestamoMaximo', () => {
+  it('700 € al 3,5 % a 30 años → ≈ 155.886,49 €', () => {
+    expect(prestamoMaximo(700, 3.5, 30)).toBeCloseTo(155886.49, 2);
+  });
+
+  it('con interés 0 % es la cuota por los meses', () => {
+    expect(prestamoMaximo(1000, 0, 10)).toBe(120000);
+  });
+
+  it.each([
+    [500, 0, 20],
+    [700, 3.5, 30],
+    [1234.56, 6.75, 15],
+    [90, 0.001, 1],
+    [2500, 20, 40],
+  ])('ida y vuelta con cuotaMensual: cuota %d, interés %d %, %d años', (cuota, interes, anios) => {
+    expect(cuotaMensual(prestamoMaximo(cuota, interes, anios), interes, anios)).toBeCloseTo(cuota, 8);
+  });
+
+  it('a más interés, menos préstamo', () => {
+    expect(prestamoMaximo(700, 5, 30)).toBeLessThan(prestamoMaximo(700, 3, 30));
+  });
+
+  it.each([0, -1, NaN, Infinity])('lanza RangeError con cuota %s', (valor) => {
+    expect(() => prestamoMaximo(valor, 3, 20)).toThrow(RangeError);
+  });
+
+  it.each([0, -1, NaN, Infinity])('lanza RangeError con plazo %s', (valor) => {
+    expect(() => prestamoMaximo(700, 3, valor)).toThrow(RangeError);
+  });
+
+  it.each([-0.1, NaN, Infinity])('lanza RangeError con interés %s', (valor) => {
+    expect(() => prestamoMaximo(700, valor, 20)).toThrow(RangeError);
+  });
+});
 
 describe('cuotaMensual', () => {
   it('calcula la cuota de 150.000 € al 3,5 % a 30 años (≈ 673,57 €)', () => {

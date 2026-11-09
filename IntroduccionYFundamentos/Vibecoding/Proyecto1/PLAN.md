@@ -52,9 +52,9 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   `src/logica/capacidad.js`: ingreso neto mensual o anual (anual ÷ 12), selector 12/14 pagas con texto aclaratorio visible («las pagas se prorratean: el ingreso mensual es el anual ÷ 12 en ambos casos») y `RATIO_ENDEUDAMIENTO = 0,35` en `src/logica/constantes.js`. Ingresos vacíos = «no introducidos» (cuota no disponible); ingresos 0 = error de validación. Persiste en el estado. Aviso del 35 % orientativo.
   Comprobación: 2.000 €/mes → 700 €; 24.000 €/año → 700 €; 12 y 14 pagas dan exactamente el mismo resultado (prueba específica); entradas inválidas rechazadas; mensaje «Introduce tus ingresos» sin datos.
 
-- [ ] **Fase 8 — Préstamo máximo y precio máximo.**
+- [x] **Fase 8 — Préstamo máximo y precio máximo.**
   `prestamoMaximo(cuota, interesAnual, anios)` (inversa de la fórmula francesa, con 0 %) y precio máximo = préstamo ÷ 0,80, con los interés y plazo comunes. Indica cuál de los tres datos falta (ingresos, interés, plazo).
-  Comprobación: ida y vuelta `cuotaMensual(prestamoMaximo(c, i, n), i, n) ≈ c`, incluyendo 0 %; 700 €, 3,5 %, 30 años ≈ 155.880 € de préstamo y ≈ 194.850 € de precio.
+  Comprobación: ida y vuelta `cuotaMensual(prestamoMaximo(c, i, n), i, n) ≈ c`, incluyendo 0 %; 700 €, 3,5 %, 30 años ≈ 155.886 € de préstamo y ≈ 194.858 € de precio (valores exactos calculados: 155.886,49 € y 194.858,11 €).
 
 - [ ] **Fase 9 — Tiempo de ahorro con escenarios.**
   `src/logica/ahorro.js`: entradas «ahorro actual» (vacío = 0) y precio por defecto = precio máximo. Necesario = 30 % del precio − ahorro (mínimo 0). `ESCENARIOS_AHORRO = [100, 75, 50, 25]` (constante de negocio, no editable). Meses = necesario ÷ (porcentaje × cuota máxima), redondeado hacia arriba tras eliminar ruido de coma flotante. `formatearDuracion(meses)` («10 meses», «1 año y 2 meses», «2 años»). Tabla de escenarios (importe mensual, porcentaje, meses, años y meses). Si ya llega: «ya puedes comprar» y sin tabla. Sin cuota máxima y faltando dinero: «sin ingresos no se puede calcular un ahorro». Avisos de ahorro constante, sin rentabilidad ni inflación.

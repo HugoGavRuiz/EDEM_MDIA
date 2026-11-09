@@ -37,6 +37,47 @@ test('12 y 14 pagas dan el mismo resultado y no ocultan el resultado', async ({ 
   await expect(page.locator('#cuota-maxima')).toHaveText(con12);
 });
 
+test('con interés y plazo calcula el préstamo y el precio máximos', async ({ page }) => {
+  await page.getByLabel('Interés anual').fill('3,5');
+  await page.getByLabel('Plazo (años)').fill('30');
+  await page.getByLabel('Ingresos netos').fill('2.000');
+  await calcular(page);
+  await expect(page.locator('#prestamo-maximo')).toHaveText(/^155\.886,49\s€$/);
+  await expect(page.locator('#precio-maximo')).toHaveText(/^194\.858,11\s€$/);
+  await expect(page.locator('#vivienda-faltan')).toBeHidden();
+});
+
+test('sin interés ni plazo indica qué falta y sigue mostrando la cuota máxima', async ({ page }) => {
+  await page.getByLabel('Ingresos netos').fill('2.000');
+  await calcular(page);
+  await expect(page.locator('#cuota-maxima')).toHaveText(/^700,00\s€$/);
+  await expect(page.locator('#vivienda-faltan')).toContainText('falta: interés y plazo');
+  await expect(page.locator('#vivienda-maxima')).toBeHidden();
+
+  await page.getByLabel('Interés anual').fill('3,5');
+  await calcular(page);
+  await expect(page.locator('#vivienda-faltan')).toContainText('falta: plazo');
+});
+
+test('un interés inválido se marca en su campo', async ({ page }) => {
+  await page.getByLabel('Interés anual').fill('3.5');
+  await page.getByLabel('Ingresos netos').fill('2.000');
+  await calcular(page);
+  await expect(page.locator('#error-interes')).toContainText('coma');
+  await expect(page.locator('#interes')).toBeFocused();
+  await expect(page.locator('#resultado-capacidad')).toBeHidden();
+});
+
+test('cambiar el interés oculta el precio máximo anterior', async ({ page }) => {
+  await page.getByLabel('Interés anual').fill('3,5');
+  await page.getByLabel('Plazo (años)').fill('30');
+  await page.getByLabel('Ingresos netos').fill('2.000');
+  await calcular(page);
+  await expect(page.locator('#resultado-capacidad')).toBeVisible();
+  await page.getByLabel('Interés anual').fill('4');
+  await expect(page.locator('#resultado-capacidad')).toBeHidden();
+});
+
 test('sin ingresos pide introducirlos', async ({ page }) => {
   await calcular(page);
   await expect(page.locator('#error-ingresos')).toHaveText('Introduce tus ingresos para calcularla.');
