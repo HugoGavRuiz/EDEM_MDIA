@@ -23,7 +23,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
 
 ## Fases
 
-- [ ] **Fase 1 — El proyecto arranca.**
+- [x] **Fase 1 — El proyecto arranca.**
   Vite + `index.html` con título «Planificador de hipoteca»; `package.json` (`dev`, `build`, `engines` `^22.12.0 || ^24.0.0 || >=26.0.0`), `.nvmrc` (26), `.gitignore` (`node_modules`, `dist`, `.env`, `.DS_Store`), `.env.example` vacío. Dependencia: `vite`.
   Commit: `CLAUDE.md`, `PLAN.md`, `docs/project-info.md`, `package.json`, `package-lock.json`, `index.html`, `.gitignore`, `.env.example`, `.nvmrc`.
   Comprobación: `npm run dev` muestra el título; `npm run build` sin errores; `git status` sin `node_modules`, `dist` ni `.env`; el `.DS_Store` de la raíz no entra en el commit.
