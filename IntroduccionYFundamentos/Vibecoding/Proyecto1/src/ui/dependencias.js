@@ -2,11 +2,12 @@
 // Cambiar el nº de pagas no oculta nada: no altera ningún resultado.
 
 const DEPENDENCIAS = {
-  interes: ['resultado', 'resultado-capacidad'],
-  plazo: ['resultado', 'resultado-capacidad'],
+  interes: ['resultado', 'resultado-capacidad', 'resultado-ahorro'],
+  plazo: ['resultado', 'resultado-capacidad', 'resultado-ahorro'],
   importe: ['resultado'],
-  ingresos: ['resultado-capacidad'],
-  periodo: ['resultado-capacidad'],
+  ingresos: ['resultado-capacidad', 'resultado-ahorro'],
+  periodo: ['resultado-capacidad', 'resultado-ahorro'],
+  ahorro: ['resultado-ahorro'],
 };
 
 export function iniciarInvalidacion() {

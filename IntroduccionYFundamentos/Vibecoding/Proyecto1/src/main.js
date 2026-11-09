@@ -2,11 +2,13 @@ import './estilos.css';
 import { borrarGuardado, guardarCampos, restaurarCampos } from './ui/almacenamiento.js';
 import { iniciarInvalidacion } from './ui/dependencias.js';
 import { iniciarFormularioHipoteca } from './ui/formularioHipoteca.js';
+import { iniciarSeccionAhorro } from './ui/seccionAhorro.js';
 import { iniciarSeccionCapacidad, sincronizarPagas } from './ui/seccionCapacidad.js';
 
 restaurarCampos();
 iniciarFormularioHipoteca();
 iniciarSeccionCapacidad();
+iniciarSeccionAhorro();
 iniciarInvalidacion();
 
 document.addEventListener('input', guardarCampos);

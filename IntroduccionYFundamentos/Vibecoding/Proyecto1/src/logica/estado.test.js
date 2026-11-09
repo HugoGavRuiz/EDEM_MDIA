@@ -43,6 +43,12 @@ describe('leerEstado', () => {
     expect(leerEstado(json)).toEqual({});
   });
 
+  it('recupera el ahorro actual y descarta uno inválido', () => {
+    expect(leerEstado(JSON.stringify({ ahorro: '20.000' }))).toEqual({ ahorro: '20.000' });
+    expect(leerEstado(JSON.stringify({ ahorro: '-5' }))).toEqual({});
+    expect(leerEstado(JSON.stringify({ ahorro: '100.000.001' }))).toEqual({});
+  });
+
   it('ignora pagas distintas de 12 o 14', () => {
     expect(leerEstado(JSON.stringify({ pagas: '13' }))).toEqual({});
   });

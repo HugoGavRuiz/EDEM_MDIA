@@ -10,6 +10,8 @@ export const LIMITES = {
   interes: { maximo: 20, decimales: 3 },
   plazo: { minimo: 1, maximo: 40, decimales: 0 },
   ingresos: { mensual: 1_000_000, anual: 12_000_000, decimales: 2 },
+  ahorro: { maximo: 100_000_000, decimales: 2 },
+  precio: { maximo: 100_000_000, decimales: 2 },
 };
 
 const error = (mensaje) => ({ ok: false, error: mensaje });
@@ -55,6 +57,29 @@ export function validarIngresos(texto, periodo) {
     return error(`No puede superar ${formato.format(maximo)} € ${periodo === 'anual' ? 'al año' : 'al mes'}.`);
   }
   const errorDecimales = validarDecimales(p, LIMITES.ingresos.decimales);
+  return errorDecimales ? error(errorDecimales) : { ok: true, valor: p.valor };
+}
+
+// Ahorro actual: vacío = 0.
+export function validarAhorro(texto) {
+  if (estaVacio(texto)) return { ok: true, valor: 0 };
+  const p = parsearNumero(texto);
+  if (!p.ok) return p;
+  const { maximo, decimales } = LIMITES.ahorro;
+  if (p.valor > maximo) return error(`No puede superar ${formato.format(maximo)} €.`);
+  const errorDecimales = validarDecimales(p, decimales);
+  return errorDecimales ? error(errorDecimales) : { ok: true, valor: p.valor };
+}
+
+// Precio concreto de la vivienda: vacío = no se ha indicado (valor null).
+export function validarPrecio(texto) {
+  if (estaVacio(texto)) return { ok: true, valor: null };
+  const p = parsearNumero(texto);
+  if (!p.ok) return p;
+  const { maximo, decimales } = LIMITES.precio;
+  if (p.valor <= 0) return error('Debe ser mayor que 0.');
+  if (p.valor > maximo) return error(`No puede superar ${formato.format(maximo)} €.`);
+  const errorDecimales = validarDecimales(p, decimales);
   return errorDecimales ? error(errorDecimales) : { ok: true, valor: p.valor };
 }
 

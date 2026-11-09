@@ -99,6 +99,10 @@ h3 { margin: 16px 0 8px; font-size: 1rem; }
 .fila dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .fila.principal dd { font-size: 1.4rem; color: var(--acento); }
 
+.mensaje { margin: 12px 0 0; font-weight: 600; }
+.mensaje:empty { display: none; }
+.tabla caption { padding: 8px 10px; text-align: left; font-size: 0.875rem; color: var(--suave); }
+
 .tabla-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--borde); border-radius: 8px; }
 .tabla { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 .tabla th, .tabla td { padding: 8px 10px; text-align: right; white-space: nowrap; }

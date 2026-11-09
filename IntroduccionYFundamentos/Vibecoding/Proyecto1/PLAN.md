@@ -56,7 +56,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   `prestamoMaximo(cuota, interesAnual, anios)` (inversa de la fórmula francesa, con 0 %) y precio máximo = préstamo ÷ 0,80, con los interés y plazo comunes. Indica cuál de los tres datos falta (ingresos, interés, plazo).
   Comprobación: ida y vuelta `cuotaMensual(prestamoMaximo(c, i, n), i, n) ≈ c`, incluyendo 0 %; 700 €, 3,5 %, 30 años ≈ 155.886 € de préstamo y ≈ 194.858 € de precio (valores exactos calculados: 155.886,49 € y 194.858,11 €).
 
-- [ ] **Fase 9 — Tiempo de ahorro con escenarios.**
+- [x] **Fase 9 — Tiempo de ahorro con escenarios.**
   `src/logica/ahorro.js`: entradas «ahorro actual» (vacío = 0) y precio por defecto = precio máximo. Necesario = 30 % del precio − ahorro (mínimo 0). `ESCENARIOS_AHORRO = [100, 75, 50, 25]` (constante de negocio, no editable). Meses = necesario ÷ (porcentaje × cuota máxima), redondeado hacia arriba tras eliminar ruido de coma flotante. `formatearDuracion(meses)` («10 meses», «1 año y 2 meses», «2 años»). Tabla de escenarios (importe mensual, porcentaje, meses, años y meses). Si ya llega: «ya puedes comprar» y sin tabla. Sin cuota máxima y faltando dinero: «sin ingresos no se puede calcular un ahorro». Avisos de ahorro constante, sin rentabilidad ni inflación.
   Comprobación: ahorro 0, parcial, ≥ objetivo, redondeo hacia arriba, cuota máxima ≤ 0 sin `Infinity`/`NaN`; 5.000 € / 500 € → 10, 14, 20 y 40 meses; precio ≈ 194.850 € sin ahorro y cuota 700 € al 100 % → ≈ 84 meses; la tabla tiene cabeceras `th`.
 

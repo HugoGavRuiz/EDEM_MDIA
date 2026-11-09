@@ -101,11 +101,51 @@
       <p class="ayuda" id="vivienda-faltan" aria-live="polite"></p>
     </section>
 
+    <form id="form-ahorro" class="seccion" novalidate>
+      <fieldset>
+        <legend>Tiempo de ahorro</legend>
+        <div class="campo">
+          <label for="ahorro">Dinero ahorrado actualmente (€)</label>
+          <input id="ahorro" name="ahorro" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="ayuda-ahorro error-ahorro">
+          <p class="ayuda" id="ayuda-ahorro">Opcional. Se usa el precio máximo que resulta de tus ingresos, el interés y el plazo.</p>
+          <p class="error" id="error-ahorro" aria-live="polite"></p>
+        </div>
+      </fieldset>
+      <button type="submit">Calcular ahorro</button>
+    </form>
+
+    <section class="resultado" id="resultado-ahorro" aria-labelledby="titulo-ahorro" hidden>
+      <h2 id="titulo-ahorro">Tiempo de ahorro</h2>
+      <dl class="resumen" id="resumen-ahorro" aria-live="polite">
+        <div class="fila"><dt>Precio de vivienda considerado</dt><dd id="precio-ahorro"></dd></div>
+        <div class="fila"><dt>Entrada + impuestos (30 %)</dt><dd id="objetivo-ahorro"></dd></div>
+        <div class="fila"><dt>Ahorro actual</dt><dd id="ahorro-actual"></dd></div>
+        <div class="fila principal"><dt>Falta por ahorrar</dt><dd id="falta-ahorro"></dd></div>
+      </dl>
+      <p class="mensaje" id="mensaje-ahorro" aria-live="polite"></p>
+      <div class="tabla-scroll" id="escenarios-ahorro" role="region" aria-labelledby="titulo-escenarios" tabindex="0">
+        <table class="tabla">
+          <caption id="titulo-escenarios">Meses de ahorro según el porcentaje de la cuota máxima que ahorres cada mes</caption>
+          <thead>
+            <tr>
+              <th scope="col">Ahorro mensual</th>
+              <th scope="col">% de la cuota máxima</th>
+              <th scope="col">Meses</th>
+              <th scope="col">Equivalente</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-escenarios"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="avisos" aria-labelledby="titulo-avisos">
       <h2 id="titulo-avisos">Avisos</h2>
       <ul>
         <li>El interés es nominal (no TAE) y no se incluyen seguros ni comisiones.</li>
         <li>El 35 % de endeudamiento es orientativo; no se descuentan deudas previas ni se tienen en cuenta los ingresos del hogar.</li>
+        <li>El 10 % de impuestos es orientativo: el ITP varía por comunidad y no se cuentan notaría ni registro.</li>
+        <li>El ahorro se supone constante, sin rentabilidad ni inflación.</li>
       </ul>
     </section>
 

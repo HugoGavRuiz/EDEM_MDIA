@@ -22,37 +22,44 @@ export function precioMaximo(prestamo) {
   return prestamo / FINANCIACION;
 }
 
+// Interés y plazo son opcionales aquí: vacíos → "faltan"; escritos pero inválidos → "errores".
+export function validarCondiciones(interes, plazo) {
+  const resultado = { errores: {}, faltan: [], interes: undefined, plazo: undefined };
+  const campos = [
+    ['interes', 'interés', interes, validarInteres],
+    ['plazo', 'plazo', plazo, validarPlazo],
+  ];
+  for (const [campo, nombre, texto, validar] of campos) {
+    if (estaVacio(texto)) {
+      resultado.faltan.push(nombre);
+      continue;
+    }
+    const validado = validar(texto);
+    if (validado.ok) resultado[campo] = validado.valor;
+    else resultado.errores[campo] = validado.error;
+  }
+  return resultado;
+}
+
 export function calcularCapacidad({ ingresos, periodo, interes, plazo }) {
   const errores = {};
-  const faltan = [];
 
   const ingresosValidados = validarIngresos(ingresos, periodo);
   if (!ingresosValidados.ok) errores.ingresos = ingresosValidados.error;
 
-  const opcionales = [
-    ['interes', 'interés', interes, validarInteres],
-    ['plazo', 'plazo', plazo, validarPlazo],
-  ];
-  const valores = {};
-  for (const [campo, nombre, texto, validar] of opcionales) {
-    if (estaVacio(texto)) {
-      faltan.push(nombre);
-      continue;
-    }
-    const resultado = validar(texto);
-    if (resultado.ok) valores[campo] = resultado.valor;
-    else errores[campo] = resultado.error;
-  }
+  const condiciones = validarCondiciones(interes, plazo);
+  Object.assign(errores, condiciones.errores);
 
   if (Object.keys(errores).length > 0) return { ok: false, errores };
 
   const mensual = ingresoMensual(ingresosValidados.valor, periodo);
   const cuota = cuotaMaxima(mensual);
+
   let vivienda = null;
-  if (faltan.length === 0) {
-    const prestamo = prestamoMaximo(cuota, valores.interes, valores.plazo);
+  if (condiciones.faltan.length === 0) {
+    const prestamo = prestamoMaximo(cuota, condiciones.interes, condiciones.plazo);
     vivienda = { prestamo, precio: precioMaximo(prestamo) };
   }
 
-  return { ok: true, ingresoMensual: mensual, cuotaMaxima: cuota, vivienda, faltan };
+  return { ok: true, ingresoMensual: mensual, cuotaMaxima: cuota, vivienda, faltan: condiciones.faltan };
 }
