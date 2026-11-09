@@ -40,7 +40,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Bloque «Condiciones» (interés y plazo) y calculadora (importe). Errores junto al campo con `aria-live`, labels asociadas, `textContent` y no `innerHTML`, formato € con `Intl.NumberFormat('es-ES')`, maquetación móvil. Dependencia: `@playwright/test` (avisando antes de la descarga). `e2e/calculadora.spec.js`.
   Comprobación: `npm test`, `npm run lint` y `npm run test:e2e` en verde; valores válidos dan la cuota; inválidos muestran el error en su campo; vista usable a 375 px.
 
-- [ ] **Fase 5 — Total, intereses y tabla anual.**
+- [x] **Fase 5 — Total, intereses y tabla anual.**
   `src/logica/amortizacion.js` (`cuadroAmortizacionAnual`, total pagado, intereses totales) y tabla accesible (cabeceras correctas). Amplía la e2e.
   Comprobación: con `toBeCloseTo`: suma de capital ≈ importe, saldo final ≈ 0, total ≈ cuota × meses; la última fila de la tabla marca 0,00 €.
 

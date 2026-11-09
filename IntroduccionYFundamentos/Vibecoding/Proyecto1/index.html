@@ -37,10 +37,29 @@
       <button type="submit">Calcular cuota</button>
     </form>
 
-    <div class="resultado" id="resultado" aria-live="polite" hidden>
-      <span>Cuota mensual</span>
-      <strong id="cuota"></strong>
-    </div>
+    <section class="resultado" id="resultado" aria-labelledby="titulo-resultado" hidden>
+      <h2 id="titulo-resultado">Resultado</h2>
+      <dl class="resumen" aria-live="polite">
+        <div class="fila principal"><dt>Cuota mensual</dt><dd id="cuota"></dd></div>
+        <div class="fila"><dt>Total pagado</dt><dd id="total"></dd></div>
+        <div class="fila"><dt>Intereses totales</dt><dd id="intereses"></dd></div>
+      </dl>
+
+      <h3 id="titulo-tabla">Amortización anual</h3>
+      <div class="tabla-scroll" role="region" aria-labelledby="titulo-tabla" tabindex="0">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Año</th>
+              <th scope="col">Intereses</th>
+              <th scope="col">Capital amortizado</th>
+              <th scope="col">Capital pendiente</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-amortizacion"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <script type="module" src="/src/main.js"></script>

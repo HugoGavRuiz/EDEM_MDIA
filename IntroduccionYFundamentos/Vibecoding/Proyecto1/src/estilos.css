@@ -65,14 +65,20 @@ button {
 button:hover { filter: brightness(1.1); }
 button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
 
-.resultado {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px 12px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--borde);
-}
+.resultado { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
 .resultado[hidden] { display: none; }
-.resultado strong { font-size: 1.4rem; color: var(--acento); font-variant-numeric: tabular-nums; }
+h2 { margin: 0 0 8px; font-size: 1.2rem; }
+h3 { margin: 16px 0 8px; font-size: 1rem; }
+
+.resumen { margin: 0; }
+.fila { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; padding: 6px 0; }
+.fila dt { color: var(--suave); }
+.fila dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fila.principal dd { font-size: 1.4rem; color: var(--acento); }
+
+.tabla-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--borde); border-radius: 8px; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.tabla th, .tabla td { padding: 8px 10px; text-align: right; white-space: nowrap; }
+.tabla thead th { position: sticky; top: 0; background: var(--fondo); color: var(--suave); }
+.tabla th[scope="row"] { text-align: center; font-weight: 600; }
+.tabla tbody tr:nth-child(even) { background: var(--fondo); }

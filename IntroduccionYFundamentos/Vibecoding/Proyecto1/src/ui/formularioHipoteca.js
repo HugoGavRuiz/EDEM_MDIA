@@ -2,16 +2,17 @@
 
 import { calcularHipoteca } from '../logica/calculadora.js';
 import { formatearEuros } from '../logica/formato.js';
+import { rellenarFilas } from './tabla.js';
 
 const CAMPOS = ['interes', 'plazo', 'importe'];
 
 export function iniciarFormularioHipoteca() {
   const formulario = document.getElementById('form-hipoteca');
   const resultado = document.getElementById('resultado');
-  const cuota = document.getElementById('cuota');
 
   const campo = (nombre) => formulario.elements[nombre];
   const error = (nombre) => document.getElementById(`error-${nombre}`);
+  const escribir = (id, texto) => { document.getElementById(id).textContent = texto; };
 
   function limpiarError(nombre) {
     error(nombre).textContent = '';
@@ -21,6 +22,22 @@ export function iniciarFormularioHipoteca() {
   function mostrarError(nombre, mensaje) {
     error(nombre).textContent = mensaje;
     campo(nombre).setAttribute('aria-invalid', 'true');
+  }
+
+  function mostrarResultado(calculo) {
+    escribir('cuota', formatearEuros(calculo.cuota));
+    escribir('total', formatearEuros(calculo.total));
+    escribir('intereses', formatearEuros(calculo.intereses));
+    rellenarFilas(
+      document.getElementById('tabla-amortizacion'),
+      calculo.cuadro.map((f) => [
+        String(f.anio),
+        formatearEuros(f.intereses),
+        formatearEuros(f.capital),
+        formatearEuros(f.saldo),
+      ]),
+    );
+    resultado.hidden = false;
   }
 
   CAMPOS.forEach((nombre) => {
@@ -36,14 +53,12 @@ export function iniciarFormularioHipoteca() {
 
     if (!calculo.ok) {
       resultado.hidden = true;
-      cuota.textContent = '';
       const conError = CAMPOS.filter((nombre) => calculo.errores[nombre]);
       conError.forEach((nombre) => mostrarError(nombre, calculo.errores[nombre]));
       campo(conError[0]).focus();
       return;
     }
 
-    cuota.textContent = formatearEuros(calculo.cuota);
-    resultado.hidden = false;
+    mostrarResultado(calculo);
   });
 }

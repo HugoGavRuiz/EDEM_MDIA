@@ -24,6 +24,35 @@ test('calcula la cuota de 150.000 € al 3,5 % a 30 años', async ({ page }) => 
   await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
 });
 
+test('muestra total, intereses y la tabla de amortización anual', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#total')).toHaveText(/^242\.484,13\s€$/);
+  await expect(page.locator('#intereses')).toHaveText(/^92\.484,13\s€$/);
+
+  const filas = page.locator('#tabla-amortizacion tr');
+  await expect(filas).toHaveCount(30);
+  await expect(filas.last().getByRole('rowheader')).toHaveText('30');
+  await expect(filas.last().getByRole('cell').last()).toHaveText(/^0,00\s€$/);
+});
+
+test('la tabla tiene cabeceras de columna y de fila', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.getByRole('columnheader')).toHaveText([
+    'Año', 'Intereses', 'Capital amortizado', 'Capital pendiente',
+  ]);
+  await expect(page.getByRole('rowheader')).toHaveCount(30);
+});
+
+test('con otro plazo la tabla se actualiza', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await page.getByLabel('Plazo (años)').fill('10');
+  await calcular(page);
+  await expect(page.locator('#tabla-amortizacion tr')).toHaveCount(10);
+});
+
 test('admite interés 0 %', async ({ page }) => {
   await rellenar(page, { interes: '0', plazo: '10', importe: '120.000' });
   await calcular(page);

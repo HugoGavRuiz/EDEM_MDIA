@@ -10,7 +10,17 @@ describe('calcularHipoteca', () => {
 
   it('acepta interés 0 %', () => {
     const r = calcularHipoteca({ importe: '120.000', interes: '0', plazo: '10' });
-    expect(r).toEqual({ ok: true, cuota: 1000 });
+    expect(r.ok).toBe(true);
+    expect(r.cuota).toBe(1000);
+    expect(r.intereses).toBeCloseTo(0, 8);
+  });
+
+  it('incluye total, intereses y un cuadro con una fila por año', () => {
+    const r = calcularHipoteca({ importe: '150.000', interes: '3,5', plazo: '30' });
+    expect(r.total).toBeCloseTo(242484.13, 2);
+    expect(r.intereses).toBeCloseTo(92484.13, 2);
+    expect(r.cuadro).toHaveLength(30);
+    expect(r.cuadro[29].saldo).toBeCloseTo(0, 6);
   });
 
   it('devuelve un error por cada campo vacío', () => {

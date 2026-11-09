@@ -1,7 +1,7 @@
 // Orquesta la calculadora a partir de los textos de los campos, sin tocar el DOM.
-// Devuelve { ok: true, cuota } o { ok: false, errores: { campo: mensaje } }.
+// Devuelve { ok: true, cuota, total, intereses, cuadro } o { ok: false, errores: { campo: mensaje } }.
 
-import { cuotaMensual } from './hipoteca.js';
+import { resumenHipoteca } from './amortizacion.js';
 import { validarImporte, validarInteres, validarPlazo } from './validacion.js';
 
 export function calcularHipoteca({ importe, interes, plazo }) {
@@ -17,6 +17,6 @@ export function calcularHipoteca({ importe, interes, plazo }) {
   }
   if (Object.keys(errores).length > 0) return { ok: false, errores };
 
-  const cuota = cuotaMensual(validados.importe.valor, validados.interes.valor, validados.plazo.valor);
-  return { ok: true, cuota };
+  const resumen = resumenHipoteca(validados.importe.valor, validados.interes.valor, validados.plazo.valor);
+  return { ok: true, ...resumen };
 }
