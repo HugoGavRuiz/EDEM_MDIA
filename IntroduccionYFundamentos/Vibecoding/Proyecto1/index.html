@@ -45,6 +45,14 @@
         <div class="fila"><dt>Intereses totales</dt><dd id="intereses"></dd></div>
       </dl>
 
+      <h3 id="titulo-grafico">Capital e intereses por año</h3>
+      <ul class="leyenda">
+        <li><i class="muestra capital" aria-hidden="true"></i>Capital amortizado</li>
+        <li><i class="muestra intereses" aria-hidden="true"></i>Intereses</li>
+      </ul>
+      <svg id="grafico" class="grafico" viewBox="0 0 360 240" role="img" aria-labelledby="titulo-grafico" aria-describedby="descripcion-grafico"></svg>
+      <p class="ayuda" id="descripcion-grafico">Cada barra apila el capital amortizado y los intereses pagados en un año. Los mismos datos están en la tabla siguiente.</p>
+
       <h3 id="titulo-tabla">Amortización anual</h3>
       <div class="tabla-scroll" role="region" aria-labelledby="titulo-tabla" tabindex="0">
         <table class="tabla">

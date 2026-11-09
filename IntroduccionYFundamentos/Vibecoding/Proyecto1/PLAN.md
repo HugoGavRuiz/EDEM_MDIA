@@ -64,7 +64,7 @@ Antes de cada instalación: comprobar que existe y que es compatible con la vers
   Campo opcional «precio de la vivienda» (> 0 si se rellena; vacío usa el precio máximo). Muestra la cuota de ese precio al 80 % de financiación con interés y plazo comunes y avisa si supera la cuota máxima del 35 %. Aclara en pantalla que los escenarios de ahorro usan la cuota máxima, no la cuota de ese precio. Persiste en el estado.
   Comprobación: el precio concreto sustituye al máximo en el cálculo de ahorro; aviso visible solo cuando cuota > cuota máxima; sin interés o plazo la cuota se oculta; sin ingresos muestra lo que falta pero no escenarios.
 
-- [ ] **Fase 11 — Gráfico SVG.**
+- [x] **Fase 11 — Gráfico SVG.**
   Barras de capital e intereses por año a partir de `cuadroAmortizacionAnual`, con etiquetas `title` y alternativa de texto.
   Comprobación: pruebas de la función de escalas/barras; e2e: una barra por año del plazo; sin errores de consola.
 

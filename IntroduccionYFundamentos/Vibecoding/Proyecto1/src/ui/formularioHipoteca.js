@@ -3,6 +3,7 @@
 import { calcularHipoteca } from '../logica/calculadora.js';
 import { formatearEuros } from '../logica/formato.js';
 import { elemento, enlazarLimpieza, escribir, limpiarError, mostrarErrores, valorDe } from './campos.js';
+import { dibujarGrafico } from './grafico.js';
 import { rellenarFilas } from './tabla.js';
 
 const CAMPOS = ['interes', 'plazo', 'importe'];
@@ -11,6 +12,7 @@ function mostrarResultado(calculo) {
   escribir('cuota', formatearEuros(calculo.cuota));
   escribir('total', formatearEuros(calculo.total));
   escribir('intereses', formatearEuros(calculo.intereses));
+  dibujarGrafico(elemento('grafico'), calculo.cuadro);
   rellenarFilas(
     elemento('tabla-amortizacion'),
     calculo.cuadro.map((f) => [

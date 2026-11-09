@@ -99,6 +99,14 @@ h3 { margin: 16px 0 8px; font-size: 1rem; }
 .fila dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .fila.principal dd { font-size: 1.4rem; color: var(--acento); }
 
+.leyenda { display: flex; gap: 16px; margin: 0 0 4px; padding: 0; list-style: none; font-size: 0.875rem; color: var(--suave); }
+.muestra { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; }
+.muestra.capital, .grafico .capital { fill: var(--acento); background: var(--acento); }
+.muestra.intereses, .grafico .intereses { fill: #b45309; background: #b45309; }
+.grafico { display: block; width: 100%; height: auto; }
+.grafico .rejilla { stroke: var(--borde); stroke-width: 1; }
+.grafico .eje { fill: var(--suave); font-size: 11px; }
+
 .mensaje { margin: 12px 0 0; font-weight: 600; }
 .mensaje:empty { display: none; }
 .mensaje.alerta { color: var(--error); }

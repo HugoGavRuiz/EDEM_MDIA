@@ -109,3 +109,60 @@ test('es usable a 375 px: sin desplazamiento horizontal y calcula', async ({ pag
   await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
   await expect(page.getByRole('button', { name: 'Calcular cuota', exact: true })).toBeInViewport();
 });
+
+test.describe('gráfico', () => {
+  test('dibuja una barra apilada por año del plazo, con título accesible', async ({ page }) => {
+    await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+    await calcular(page);
+
+    const grafico = page.getByRole('img', { name: 'Capital e intereses por año' });
+    await expect(grafico).toBeVisible();
+    await expect(grafico.locator('g.barra')).toHaveCount(30);
+    await expect(grafico.locator('g.barra rect.capital')).toHaveCount(30);
+    await expect(grafico.locator('g.barra rect.intereses')).toHaveCount(30);
+    await expect(grafico.locator('g.barra').first().locator('title')).toHaveText(/^Año 1\. Capital: .* Intereses: .*\.$/);
+    await expect(grafico).toHaveAccessibleDescription(/Los mismos datos están en la tabla/);
+  });
+
+  test('con otro plazo el gráfico se redibuja', async ({ page }) => {
+    await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+    await calcular(page);
+    await page.getByLabel('Plazo (años)').fill('10');
+    await calcular(page);
+    await expect(page.locator('#grafico g.barra')).toHaveCount(10);
+  });
+
+  test('con interés 0 % las barras de intereses no tienen altura', async ({ page }) => {
+    await rellenar(page, { interes: '0', plazo: '10', importe: '120.000' });
+    await calcular(page);
+    const alturas = await page.locator('#grafico rect.intereses').evaluateAll(
+      (rects) => rects.map((r) => Number(r.getAttribute('height'))),
+    );
+    expect(alturas).toHaveLength(10);
+    expect(alturas.every((a) => a === 0)).toBe(true);
+  });
+
+  test('las barras no contienen NaN y no hay errores de consola', async ({ page }) => {
+    const errores = [];
+    page.on('pageerror', (e) => errores.push(e.message));
+    page.on('console', (m) => { if (m.type() === 'error') errores.push(m.text()); });
+    await rellenar(page, { interes: '3,5', plazo: '40', importe: '99.999.999' });
+    await calcular(page);
+    await expect(page.locator('#grafico g.barra')).toHaveCount(40);
+    const atributos = await page.locator('#grafico rect').evaluateAll(
+      (rects) => rects.flatMap((r) => ['x', 'y', 'width', 'height'].map((a) => r.getAttribute(a))),
+    );
+    expect(atributos.some((v) => v === null || /NaN|Infinity/.test(v))).toBe(false);
+    expect(errores).toEqual([]);
+  });
+
+  test('a 375 px el gráfico no provoca desplazamiento horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await rellenar(page, { interes: '3,5', plazo: '40', importe: '150.000' });
+    await calcular(page);
+    const sinDesbordar = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    );
+    expect(sinDesbordar).toBe(true);
+  });
+});
