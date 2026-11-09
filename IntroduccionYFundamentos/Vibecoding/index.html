@@ -29,7 +29,7 @@
     .card {
       background: var(--card);
       width: 100%;
-      max-width: 420px;
+      max-width: 520px;
       padding: 28px;
       border-radius: 14px;
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
@@ -66,6 +66,16 @@
     .row span:first-child { color: var(--muted); }
     .row span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
     .row.main span:last-child { font-size: 1.4rem; color: var(--accent); }
+    h2 { font-size: 1.05rem; margin: 22px 0 8px; }
+    #grafico { width: 100%; height: auto; display: block; }
+    .legend { display: flex; gap: 16px; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+    .table-wrap { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: 8px 10px; text-align: right; }
+    th:first-child, td:first-child { text-align: center; }
+    thead th { position: sticky; top: 0; background: var(--bg); color: var(--muted); font-weight: 600; }
+    tbody tr:nth-child(even) { background: var(--bg); }
   </style>
 </head>
 <body>
@@ -96,6 +106,23 @@
       <div class="row main"><span>Cuota mensual</span><span id="cuota"></span></div>
       <div class="row"><span>Total pagado</span><span id="total"></span></div>
       <div class="row"><span>Intereses totales</span><span id="intereses"></span></div>
+
+      <h2>Capital e intereses por año</h2>
+      <div class="legend">
+        <span><i style="background:#2563eb"></i>Capital</span>
+        <span><i style="background:#f59e0b"></i>Intereses</span>
+      </div>
+      <svg id="grafico" viewBox="0 0 480 260" role="img" aria-label="Gráfico de barras de capital e intereses pagados por año"></svg>
+
+      <h2>Tabla de amortización anual</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Año</th><th>Intereses</th><th>Capital pendiente</th></tr>
+          </thead>
+          <tbody id="tabla"></tbody>
+        </table>
+      </div>
     </section>
   </main>
 
@@ -143,6 +170,8 @@
         return;
       }
 
+      guardarValores({ importe: P, interes: tasaAnual, anios });
+
       // Sistema francés: C = P · i / (1 − (1 + i)^−n)
       const i = tasaAnual / 100 / 12;   // interés mensual
       const n = anios * 12;             // número de cuotas
@@ -153,8 +182,114 @@
       document.getElementById("cuota").textContent = fmt.format(cuota);
       document.getElementById("total").textContent = fmt.format(total);
       document.getElementById("intereses").textContent = fmt.format(intereses);
+      // Tabla anual: se simulan los pagos mensuales y se agrupa por año
+      const tbody = document.getElementById("tabla");
+      tbody.innerHTML = "";
+      let saldo = P;
+      const datos = [];
+      for (let anio = 1; anio <= anios; anio++) {
+        let interesesAnio = 0;
+        let capitalAnio = 0;
+        for (let m = 0; m < 12; m++) {
+          const interesMes = saldo * i;
+          interesesAnio += interesMes;
+          capitalAnio += cuota - interesMes;
+          saldo -= cuota - interesMes;
+        }
+        datos.push({ anio, intereses: interesesAnio, capital: capitalAnio });
+        if (anio === anios || saldo < 0.005) saldo = 0; // evita -0,00 por redondeo
+        const tr = document.createElement("tr");
+        [anio, fmt.format(interesesAnio), fmt.format(saldo)].forEach(v => {
+          const td = document.createElement("td");
+          td.textContent = v;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+
+      dibujarGrafico(datos);
       results.style.display = "block";
     });
+
+    // Persistencia de los últimos valores usados (localStorage puede no estar disponible)
+    const CLAVE = "hipoteca:ultimosValores";
+
+    function guardarValores(valores) {
+      try { localStorage.setItem(CLAVE, JSON.stringify(valores)); } catch (e) {}
+    }
+
+    function cargarValores() {
+      try {
+        const guardados = JSON.parse(localStorage.getItem(CLAVE));
+        if (!guardados) return;
+        ["importe", "interes", "anios"].forEach(id => {
+          const v = Number(guardados[id]);
+          // Solo se restauran valores válidos (finitos y no negativos)
+          if (Number.isFinite(v) && v >= 0) document.getElementById(id).value = v;
+        });
+      } catch (e) {}
+    }
+
+    cargarValores();
+
+    // Gráfico de barras apiladas en SVG: capital amortizado + intereses por año
+    function dibujarGrafico(datos) {
+      const NS = "http://www.w3.org/2000/svg";
+      const W = 480, H = 260;
+      const m = { top: 12, right: 10, bottom: 28, left: 56 };
+      const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+      const svg = document.getElementById("grafico");
+      svg.innerHTML = "";
+
+      const el = (name, attrs, text) => {
+        const e = document.createElementNS(NS, name);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        svg.appendChild(e);
+        return e;
+      };
+
+      // Escala Y con paso "redondo"
+      const maxVal = Math.max(...datos.map(d => d.capital + d.intereses));
+      const pasoBruto = maxVal / 4;
+      const pot = Math.pow(10, Math.floor(Math.log10(pasoBruto)));
+      const paso = [1, 2, 2.5, 5, 10].map(f => f * pot).find(p => p >= pasoBruto);
+      const topY = Math.ceil(maxVal / paso) * paso;
+      const y = v => m.top + ih - (v / topY) * ih;
+      const compacto = new Intl.NumberFormat("es-ES", { notation: "compact", maximumFractionDigits: 1 });
+
+      for (let v = 0; v <= topY + 1e-9; v += paso) {
+        el("line", { x1: m.left, x2: W - m.right, y1: y(v), y2: y(v), stroke: "#d5dae3", "stroke-width": 1 });
+        el("text", { x: m.left - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "#5b6475" }, compacto.format(v) + " €");
+      }
+
+      const n = datos.length;
+      const paso_x = iw / n;
+      const bw = Math.max(2, paso_x * 0.7);
+      const cadaX = Math.ceil(n / 12); // limita las etiquetas del eje X
+
+      datos.forEach((d, idx) => {
+        const x = m.left + idx * paso_x + (paso_x - bw) / 2;
+        const hCap = (d.capital / topY) * ih;
+        const hInt = (d.intereses / topY) * ih;
+        const g = el("g", {});
+        const tip = document.createElementNS(NS, "title");
+        tip.textContent = `Año ${d.anio}\nCapital: ${fmt.format(d.capital)}\nIntereses: ${fmt.format(d.intereses)}`;
+        g.appendChild(tip);
+        [["rect", { x, y: m.top + ih - hCap, width: bw, height: hCap, fill: "#2563eb" }],
+         ["rect", { x, y: m.top + ih - hCap - hInt, width: bw, height: hInt, fill: "#f59e0b" }]]
+          .forEach(([name, attrs]) => {
+            const r = document.createElementNS(NS, name);
+            for (const k in attrs) r.setAttribute(k, attrs[k]);
+            g.appendChild(r);
+          });
+        svg.appendChild(g);
+
+        if ((d.anio - 1) % cadaX === 0 || d.anio === n) {
+          el("text", { x: x + bw / 2, y: H - 10, "text-anchor": "middle", "font-size": 11, fill: "#5b6475" }, d.anio);
+        }
+      });
+    }
   </script>
 </body>
 </html>
