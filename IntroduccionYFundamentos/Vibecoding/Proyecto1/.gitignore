@@ -1,6 +1,10 @@
 # Dependencias y builds
 node_modules
 dist
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
 
 # Secretos y configuración local: nunca se suben. Solo .env.example (sin valores) se versiona.
 .env

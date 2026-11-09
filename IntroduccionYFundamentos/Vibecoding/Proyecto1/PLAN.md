@@ -77,7 +77,7 @@ Decidido con el usuario: PostgreSQL + Docker, FastAPI y React. Los cálculos se 
 
 Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg[binary]`, `pydantic-settings` (fase 13); `alembic`, `httpx` (fase 14); `pytest`, `ruff` (dev, fase 13). Frontend: `react`, `react-dom`, `@vitejs/plugin-react`, `eslint-plugin-react-hooks` (fase 15; `eslint-plugin-react` no admite ESLint 10).
 
-- [ ] **Fase 13 — Backend base.**
+- [x] **Fase 13 — Backend base.**
   `docker-compose.yml` con PostgreSQL (y la API en contenedor), `backend/` con FastAPI, configuración desde `.env`, `GET /salud` y `GET /salud/db`, `pytest` y `ruff`. El `.env` local lleva una contraseña de desarrollo.
   Comprobación: `docker compose up -d db`; `uv run pytest` y `ruff` en verde; `curl /salud` → 200; `/salud/db` → 200 con la base arriba y 503 con la base parada; `.env` fuera de git.
 
