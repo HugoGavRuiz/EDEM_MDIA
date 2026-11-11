@@ -34,6 +34,17 @@ FastAPI + PostgreSQL. Los cálculos NO viven aquí: se quedan en el navegador (`
 - **Fuente:** API del BCE (SDMX, pública y sin clave), serie `MIR/M.ES.B.A2C.AM.R.A.2250.EUR.N` (tipo anualizado acordado, nuevas operaciones, préstamos a hogares para vivienda en España). Es una **media de todas las entidades**, nominal (no TAE), sin seguros ni comisiones, con un mes de retraso. No existe una API pública con los tipos de cada banco.
 - CORS: solo los orígenes de `CORS_ORIGINS`.
 
+## Asesor de hipoteca con IA (Gemini)
+Función opcional que necesita el backend y una clave propia de Gemini.
+- **Entrada (todo validado antes de enviar):** tipo de trabajo (funcionario de carrera, funcionario interino, indefinido, temporal o autónomo) y antigüedad en el puesto de cada titular; ingresos netos conjuntos (los de «Cuota máxima», convertidos a mensuales) y precio de la vivienda (el de «Tiempo de ahorro»). Se da por hecho que ya está ahorrado el 30 % (20 % de entrada y 10 % de impuestos), así que se financia el 80 %.
+- **Qué se envía a Google:** solo esos datos y el tipo medio actual del BCE como referencia. Sin nombres, sin edades y sin texto libre del usuario (así no hay inyección de instrucciones en el prompt). En el plan gratuito de Gemini, según sus condiciones, el contenido puede usarse para mejorar productos de Google: se recomienda revisar sus términos antes de usar datos reales.
+- **Salida (JSON validado):** `indice_riesgo` (bajo, medio o alto), `viable`, `resumen` y hasta 3 `ofertas` con `banco`, `tipo_interes`, `anios_hipoteca`, `intereses_acumulados` y `consejos_negociacion`. Si no es viable, `ofertas` va vacía y el resumen explica qué cambiaría.
+- **Validación:** estructura exacta (sin campos de más ni de menos), tipo de interés entre 0 y 20 %, años enteros entre 1 y 40, textos con longitud acotada, bancos sin repetir, coherencia entre `viable` y las ofertas, y cuota de cada oferta como máximo el 40 % de los ingresos. Los **intereses acumulados se recalculan** con la fórmula francesa; el valor de la IA solo se usa para detectar que difiere.
+- **Errores que se avisan al usuario:** límite de uso (429), respuesta inválida, servicio no disponible y asesor no configurado. La app sigue funcionando igual sin el asesor.
+- **Aviso permanente:** es una estimación orientativa generada por IA, no una oferta ni una aprobación de ningún banco.
+- **Prompt y casos de prueba:** `prompts/asesor_hipoteca.md` y `prompts/casos_prueba.json` (5 casos con su resultado esperado en rangos, porque una IA no devuelve siempre lo mismo).
+- **Configuración:** `GEMINI_API_KEY` y `GEMINI_MODEL` en `.env` (solo en el backend; nunca en React).
+
 ## Flujo entre herramientas
 Una sola página con **estado compartido**. Distribución: bloque «Condiciones» (interés y plazo, comunes), calculadora (importe), ingresos y ahorro. Qué muestra cada herramienta si faltan datos:
 
@@ -75,7 +86,7 @@ Una sola página con **estado compartido**. Distribución: bloque «Condiciones�
 ## Datos
 - **Entradas del usuario:** importe, interés anual, plazo, ingresos netos (+ periodicidad y nº de pagas), ahorro actual, precio concreto opcional.
 - **Constantes de negocio:** ratio de endeudamiento 35 %, entrada 20 %, impuestos 10 %, financiación 80 %, escenarios de ahorro `[100, 75, 50, 25]`.
-- **En el navegador:** los datos del usuario solo se recuerdan en `localStorage`. Al leer se **valida** todo (JSON corrupto o valores inválidos se ignoran). Puede no estar disponible y la app debe funcionar igual. Botón para borrar lo guardado. **Los datos del usuario nunca se envían al backend.**
+- **En el navegador:** los datos del usuario solo se recuerdan en `localStorage`. Al leer se **valida** todo (JSON corrupto o valores inválidos se ignoran). Puede no estar disponible y la app debe funcionar igual. Botón para borrar lo guardado. **Los datos del usuario no se envían al backend, salvo cuando pulsa «Consultar al asesor IA»** (ver «Asesor de hipoteca con IA»): entonces se envían solo los datos mínimos que se indican allí, y nunca se guardan.
 - **En PostgreSQL:** una tabla de caché con los tipos de interés del BCE (periodo, valor, serie, fecha de descarga). Sin usuarios, sin cuentas y sin datos personales.
 - **Configuración y secretos:** en `.env` (nunca en git); `.env.example` solo tiene los nombres: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_PORT`, `API_HOST`, `API_PORT`, `CORS_ORIGINS` y `VITE_API_URL`. Todo lo que empieza por `VITE_` llega al navegador: nada secreto ahí. El `.env` local usa una contraseña de desarrollo de usar y tirar; la base de datos real sería producción.
 
@@ -106,9 +117,10 @@ npm run build                     # build de producción en dist/ (no se publica
 
 ## Cómo se probará
 - `npm test` — Vitest sobre `src/logica`: cuota, amortización, cuota máxima, préstamo y precio máximos, escenarios de ahorro, parseo y validación, estado de la app, lectura de lo guardado. Casos límite: interés 0 % (también en préstamo máximo), ahorro ≥ objetivo, cuota máxima 0, redondeo hacia arriba, el selector 12/14 no altera el resultado.
-- `npm run test:e2e` — Playwright (Chromium) en `e2e/`: calculadora, cuota máxima, ahorro y precio concreto, persistencia (incluido `localStorage` corrupto o bloqueado), borrado, límites de cada campo, flujo completo, accesibilidad y vista móvil a 375 px, y el botón del tipo medio con la API simulada (disponible y caída). Arranca sus propios servidores: el puerto 5174 (sin API: la variable `VITE_API_URL` del entorno pisa al `.env`, así las pruebas no dependen de si el backend está encendido) y el 5175 (con una API ficticia `http://api.test` simulada con `page.route`, solo para `tipo-medio.spec.js`). La interfaz se prueba con e2e (sin jsdom/happy-dom).
+- `npm run test:e2e` — Playwright (Chromium) en `e2e/`: calculadora, cuota máxima, ahorro y precio concreto, persistencia (incluido `localStorage` corrupto o bloqueado), borrado, límites de cada campo, flujo completo, accesibilidad y vista móvil a 375 px, el botón del tipo medio y el asesor de IA con la API simulada (éxito, no viable, 429, 502, 503, red caída, respuestas inválidas, validación de campos y cuerpo de la petición con solo los datos mínimos). Arranca sus propios servidores: el puerto 5174 (sin API: la variable `VITE_API_URL` del entorno pisa al `.env`, así las pruebas no dependen de si el backend está encendido) y el 5175 (con una API ficticia `http://api.test` simulada con `page.route`, solo para `tipo-medio.spec.js`). La interfaz se prueba con e2e (sin jsdom/happy-dom).
 - `npm run lint` — ESLint sin errores ni avisos.
-- `cd backend && uv run pytest` — pruebas del backend: configuración, rutas, cliente del BCE (con respuestas grabadas, sin red), caché en PostgreSQL (necesita `docker compose up -d db`).
+- `cd backend && uv run pytest` — pruebas del backend: configuración, rutas, cliente del BCE (con respuestas grabadas, sin red), caché en PostgreSQL (necesita `docker compose up -d db`), y el asesor de IA con un Gemini simulado (validación de la respuesta, errores 429/502/503, sin fugas de la clave ni de los datos).
+- `cd backend && uv run python -m app.evaluar` — evaluación manual de los 5 casos de `prompts/casos_prueba.json` contra el Gemini real (gasta cuota de tu clave; no forma parte de las pruebas automáticas). Antes de elegir `GEMINI_MODEL`, prueba una llamada real: la lista de modelos de Google puede incluir modelos ya no disponibles.
 - `cd backend && uv run ruff check . && uv run ruff format --check .` — linter y formato del backend.
 - Antes de dar nada por terminado se ejecutan todas y se muestra el resultado. Los bugs se corrigen escribiendo primero una prueba que falle.
 

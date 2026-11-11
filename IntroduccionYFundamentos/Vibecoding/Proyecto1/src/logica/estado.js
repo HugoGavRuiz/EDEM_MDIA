@@ -3,6 +3,7 @@
 // Lo guardado no es de fiar: al leer se valida todo y lo inválido se ignora.
 // El orden importa: un validador puede usar los campos ya leídos (los ingresos dependen del periodo).
 
+import { validarAntiguedad, validarTrabajo } from './asesor.js';
 import {
   PERIODOS,
   validarAhorro,
@@ -24,6 +25,10 @@ export const CAMPOS_GUARDADOS = {
   ingresos: (valor, estado) => validarIngresos(valor, estado.periodo ?? 'mensual'),
   ahorro: validarAhorro,
   precio: validarPrecio,
+  trabajo1: validarTrabajo,
+  antiguedad1: validarAntiguedad,
+  trabajo2: validarTrabajo,
+  antiguedad2: validarAntiguedad,
 };
 
 const MAX_LONGITUD = 40;

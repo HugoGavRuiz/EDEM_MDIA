@@ -1,0 +1,253 @@
+[
+  {
+    "id": "caso-1-dos-funcionarios",
+    "descripcion": "Dos funcionarios de carrera con ingresos holgados: el perfil más favorable para un banco.",
+    "entrada": {
+      "trabajo_1": "funcionario_carrera",
+      "antiguedad_1_anios": 8,
+      "trabajo_2": "funcionario_carrera",
+      "antiguedad_2_anios": 5,
+      "ingresos_mensuales_netos": 6000,
+      "precio_vivienda": 250000
+    },
+    "esperado": {
+      "viable": true,
+      "indice_riesgo_permitido": [
+        "bajo"
+      ],
+      "num_ofertas": {
+        "min": 1,
+        "max": 3
+      },
+      "tipo_interes": {
+        "min": 2.0,
+        "max": 3.6
+      },
+      "anios_hipoteca": {
+        "min": 20,
+        "max": 35
+      },
+      "cuota_sobre_ingresos_max": 0.35,
+      "consejos_por_oferta_min": 2
+    },
+    "ejemplo_respuesta": {
+      "indice_riesgo": "bajo",
+      "viable": true,
+      "resumen": "Dos funcionarios de carrera con ingresos holgados: riesgo bajo. La cuota queda muy por debajo del 35 % de los ingresos, así que la operación es viable con buenas condiciones.",
+      "ofertas": [
+        {
+          "banco": "Banco Ejemplo Uno",
+          "tipo_interes": 2.65,
+          "anios_hipoteca": 30,
+          "intereses_acumulados": 90133.93,
+          "consejos_negociacion": [
+            "Pide la FEIN de cada banco y compara la TAE con y sin vinculación antes de aceptar productos adicionales.",
+            "Con vuestro perfil estable podéis pedir una rebaja del diferencial a cambio de domiciliar las nóminas."
+          ]
+        },
+        {
+          "banco": "Banco Ejemplo Dos",
+          "tipo_interes": 2.8,
+          "anios_hipoteca": 25,
+          "intereses_acumulados": 78324.7,
+          "consejos_negociacion": [
+            "Pide la FEIN de cada banco y compara la TAE con y sin vinculación antes de aceptar productos adicionales.",
+            "Con vuestro perfil estable podéis pedir una rebaja del diferencial a cambio de domiciliar las nóminas."
+          ]
+        },
+        {
+          "banco": "Banco Ejemplo Tres",
+          "tipo_interes": 3.0,
+          "anios_hipoteca": 30,
+          "intereses_acumulados": 103554.9,
+          "consejos_negociacion": [
+            "Compara el tipo fijo con el mixto: el fijo da seguridad y el mixto suele empezar más bajo.",
+            "Negocia la comisión de apertura y las bonificaciones: acepta solo las que compensen su coste real.",
+            "Presenta ofertas de otros bancos como argumento para mejorar el tipo."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "caso-2-dos-indefinidos",
+    "descripcion": "Dos trabajadores indefinidos del sector privado con antigüedad suficiente.",
+    "entrada": {
+      "trabajo_1": "indefinido",
+      "antiguedad_1_anios": 5,
+      "trabajo_2": "indefinido",
+      "antiguedad_2_anios": 4,
+      "ingresos_mensuales_netos": 4000,
+      "precio_vivienda": 200000
+    },
+    "esperado": {
+      "viable": true,
+      "indice_riesgo_permitido": [
+        "bajo",
+        "medio"
+      ],
+      "num_ofertas": {
+        "min": 1,
+        "max": 3
+      },
+      "tipo_interes": {
+        "min": 2.4,
+        "max": 4.2
+      },
+      "anios_hipoteca": {
+        "min": 20,
+        "max": 35
+      },
+      "cuota_sobre_ingresos_max": 0.35,
+      "consejos_por_oferta_min": 2
+    },
+    "ejemplo_respuesta": {
+      "indice_riesgo": "bajo",
+      "viable": true,
+      "resumen": "Dos contratos indefinidos con varios años de antigüedad y una cuota de alrededor del 17 % de los ingresos: riesgo bajo y operación viable.",
+      "ofertas": [
+        {
+          "banco": "Banco Ejemplo Uno",
+          "tipo_interes": 2.95,
+          "anios_hipoteca": 30,
+          "intereses_acumulados": 81293.43,
+          "consejos_negociacion": [
+            "Pide la FEIN de cada banco y compara la TAE con y sin vinculación antes de aceptar productos adicionales.",
+            "Con vuestro perfil estable podéis pedir una rebaja del diferencial a cambio de domiciliar las nóminas."
+          ]
+        },
+        {
+          "banco": "Banco Ejemplo Dos",
+          "tipo_interes": 3.1,
+          "anios_hipoteca": 25,
+          "intereses_acumulados": 70125.85,
+          "consejos_negociacion": [
+            "Compara el tipo fijo con el mixto: el fijo da seguridad y el mixto suele empezar más bajo.",
+            "Negocia la comisión de apertura y las bonificaciones: acepta solo las que compensen su coste real.",
+            "Presenta ofertas de otros bancos como argumento para mejorar el tipo."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "caso-3-indefinido-y-autonomo",
+    "descripcion": "Un indefinido y un autónomo con poco más de un año de actividad: más incertidumbre para el banco.",
+    "entrada": {
+      "trabajo_1": "indefinido",
+      "antiguedad_1_anios": 6,
+      "trabajo_2": "autonomo",
+      "antiguedad_2_anios": 1.5,
+      "ingresos_mensuales_netos": 4500,
+      "precio_vivienda": 220000
+    },
+    "esperado": {
+      "viable": true,
+      "indice_riesgo_permitido": [
+        "medio",
+        "alto"
+      ],
+      "num_ofertas": {
+        "min": 1,
+        "max": 3
+      },
+      "tipo_interes": {
+        "min": 2.8,
+        "max": 5.0
+      },
+      "anios_hipoteca": {
+        "min": 15,
+        "max": 35
+      },
+      "cuota_sobre_ingresos_max": 0.35,
+      "consejos_por_oferta_min": 2
+    },
+    "ejemplo_respuesta": {
+      "indice_riesgo": "medio",
+      "viable": true,
+      "resumen": "Un contrato indefinido estable y un autónomo con poco historial: riesgo medio. La cuota es asumible, pero el banco pedirá más documentación y aplicará un tipo algo mayor.",
+      "ofertas": [
+        {
+          "banco": "Banco Ejemplo Uno",
+          "tipo_interes": 3.6,
+          "anios_hipoteca": 30,
+          "intereses_acumulados": 112063.29,
+          "consejos_negociacion": [
+            "Prepara dos años de declaraciones de la renta y los modelos trimestrales para acreditar la estabilidad del autónomo.",
+            "Valora aportar un aval o más entrada si el banco duda; puede bajar el tipo o permitir un plazo mayor.",
+            "Pide por escrito qué bonificaciones exige cada banco y calcula si merecen la pena."
+          ]
+        },
+        {
+          "banco": "Banco Ejemplo Dos",
+          "tipo_interes": 3.9,
+          "anios_hipoteca": 25,
+          "intereses_acumulados": 99790.75,
+          "consejos_negociacion": [
+            "Prepara dos años de declaraciones de la renta y los modelos trimestrales para acreditar la estabilidad del autónomo.",
+            "Valora aportar un aval o más entrada si el banco duda; puede bajar el tipo o permitir un plazo mayor.",
+            "Pide por escrito qué bonificaciones exige cada banco y calcula si merecen la pena."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "caso-4-dos-temporales",
+    "descripcion": "Dos contratos temporales con menos de un año de antigüedad y una cuota que consume casi el 35 %: los bancos lo rechazarían.",
+    "entrada": {
+      "trabajo_1": "temporal",
+      "antiguedad_1_anios": 0.5,
+      "trabajo_2": "temporal",
+      "antiguedad_2_anios": 0.8,
+      "ingresos_mensuales_netos": 2600,
+      "precio_vivienda": 250000
+    },
+    "esperado": {
+      "viable": false,
+      "indice_riesgo_permitido": [
+        "alto"
+      ],
+      "num_ofertas": {
+        "min": 0,
+        "max": 0
+      },
+      "consejos_por_oferta_min": 0
+    },
+    "ejemplo_respuesta": {
+      "indice_riesgo": "alto",
+      "viable": false,
+      "resumen": "Dos contratos temporales con menos de un año de antigüedad y una cuota estimada cercana al 35 % de los ingresos: riesgo alto y poco probable que un banco la apruebe. Convendría ganar antigüedad, conseguir contratos indefinidos, aportar más ahorro o bajar el precio de la vivienda.",
+      "ofertas": []
+    }
+  },
+  {
+    "id": "caso-5-vivienda-demasiado-cara",
+    "descripcion": "Dos indefinidos con ingresos bajos para el precio: la cuota supera con mucho el 40 % aunque se alargue el plazo.",
+    "entrada": {
+      "trabajo_1": "indefinido",
+      "antiguedad_1_anios": 3,
+      "trabajo_2": "indefinido",
+      "antiguedad_2_anios": 3,
+      "ingresos_mensuales_netos": 2500,
+      "precio_vivienda": 400000
+    },
+    "esperado": {
+      "viable": false,
+      "indice_riesgo_permitido": [
+        "alto"
+      ],
+      "num_ofertas": {
+        "min": 0,
+        "max": 0
+      },
+      "consejos_por_oferta_min": 0
+    },
+    "ejemplo_respuesta": {
+      "indice_riesgo": "alto",
+      "viable": false,
+      "resumen": "Con 2.500 € al mes la cuota de una vivienda de 400.000 € superaría el 45 % de los ingresos incluso a 40 años: no es viable. Habría que bajar el precio de la vivienda, aportar más entrada o aumentar los ingresos.",
+      "ofertas": []
+    }
+  }
+]

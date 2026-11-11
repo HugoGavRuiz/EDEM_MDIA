@@ -88,7 +88,10 @@ def obtener_tipos(
 
         if not vigente:
             try:
-                _guardar(sesion, descargar(), instante)
+                observaciones = descargar()
+                if not observaciones:
+                    raise BceError("el BCE no devolvió observaciones")
+                _guardar(sesion, observaciones, instante)
                 guardado = _leer(sesion)
             except BceError:
                 if guardado is None:

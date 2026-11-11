@@ -84,6 +84,23 @@ def test_sin_cache_y_con_el_bce_caido_lanza_sin_datos(bd, descargador):
     assert contar(bd) == 0
 
 
+def test_una_descarga_vacia_cuenta_como_fallo_y_no_se_guarda(bd, descargador):
+    descargador.observaciones = []
+    with pytest.raises(SinDatos):
+        obtener_tipos(bd, descargador, ahora=lambda: AHORA)
+    assert contar(bd) == 0
+
+
+def test_una_descarga_vacia_con_cache_caducada_sirve_lo_guardado(bd, descargador):
+    descargador.observaciones = [obs("2026-09", "2.99")]
+    obtener_tipos(bd, descargador, ahora=lambda: AHORA)
+    descargador.observaciones = []
+    respuesta = obtener_tipos(bd, descargador, ahora=lambda: AHORA + timedelta(days=2))
+    assert respuesta.desactualizado is True
+    assert respuesta.ultimo.valor == 2.99
+    assert contar(bd) == 1
+
+
 def test_tras_un_fallo_sin_cache_se_recupera_cuando_el_bce_vuelve(bd, descargador):
     descargador.error = BceError("caído")
     with pytest.raises(SinDatos):

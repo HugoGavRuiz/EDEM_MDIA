@@ -22,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./prompts:/prompts:ro # el prompt del asesor se edita sin reconstruir la imagen
     ports:
       - "127.0.0.1:${API_PORT}:8000"
 

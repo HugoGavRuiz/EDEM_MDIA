@@ -113,3 +113,27 @@ describe('serializarEstado', () => {
     expect(leerEstado(serializarEstado({ interes: '3.5', plazo: '30' }))).toEqual({ plazo: '30' });
   });
 });
+
+describe('estado: datos del asesor', () => {
+  it('recupera el tipo de trabajo y la antigüedad de cada titular', () => {
+    const valores = { trabajo1: 'funcionario_carrera', antiguedad1: '8', trabajo2: 'autonomo', antiguedad2: '1,5' };
+    expect(leerEstado(JSON.stringify(valores))).toEqual(valores);
+  });
+
+  it.each([
+    [{ trabajo1: 'astronauta' }],
+    [{ trabajo2: 'Indefinido' }],
+    [{ antiguedad1: '-1' }],
+    [{ antiguedad2: '51' }],
+    [{ antiguedad1: '2,55' }],
+    [{ antiguedad2: 'mucha' }],
+    [{ trabajo1: 5 }],
+  ])('descarta lo inválido: %j', (guardado) => {
+    expect(leerEstado(JSON.stringify(guardado))).toEqual({});
+  });
+
+  it('se guardan y se leen de vuelta', () => {
+    const valores = { trabajo1: 'temporal', antiguedad1: '0', trabajo2: 'indefinido', antiguedad2: '12' };
+    expect(leerEstado(serializarEstado(valores))).toEqual(valores);
+  });
+});

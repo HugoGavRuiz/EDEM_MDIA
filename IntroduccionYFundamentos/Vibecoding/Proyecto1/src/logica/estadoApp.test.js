@@ -20,7 +20,7 @@ describe('estadoInicial', () => {
     const estado = estadoInicial();
     expect(estado.valores).toEqual(VALORES_INICIALES);
     expect(estado.errores).toEqual({});
-    expect(estado.resultados).toEqual({ hipoteca: null, capacidad: null, ahorro: null });
+    expect(estado.resultados).toEqual({ hipoteca: null, capacidad: null, ahorro: null, asesor: null });
     expect(estado.foco.campo).toBeNull();
     expect(estado.mensaje).toBe('');
   });
@@ -56,13 +56,17 @@ describe('cambiar', () => {
     ['interes', ['hipoteca', 'capacidad', 'ahorro']],
     ['plazo', ['hipoteca', 'capacidad', 'ahorro']],
     ['importe', ['hipoteca']],
-    ['ingresos', ['capacidad', 'ahorro']],
-    ['periodo', ['capacidad', 'ahorro']],
+    ['ingresos', ['capacidad', 'ahorro', 'asesor']],
+    ['periodo', ['capacidad', 'ahorro', 'asesor']],
     ['ahorro', ['ahorro']],
-    ['precio', ['ahorro']],
+    ['precio', ['ahorro', 'asesor']],
     ['pagas', []],
+    ['trabajo1', ['asesor']],
+    ['antiguedad1', ['asesor']],
+    ['trabajo2', ['asesor']],
+    ['antiguedad2', ['asesor']],
   ])('cambiar %s oculta solo %j', (campo, afectadas) => {
-    const lleno = { hipoteca: { ok: true }, capacidad: { ok: true }, ahorro: { ok: true } };
+    const lleno = { hipoteca: { ok: true }, capacidad: { ok: true }, ahorro: { ok: true }, asesor: { ok: true } };
     const siguiente = escribir({ ...estadoInicial(), resultados: lleno }, campo, '1');
     Object.keys(lleno).forEach((herramienta) => {
       expect(siguiente.resultados[herramienta]).toEqual(afectadas.includes(herramienta) ? null : { ok: true });
@@ -211,7 +215,7 @@ describe('borrar', () => {
     estado = reducir(estado, { tipo: 'borrar' });
     expect(estado.valores).toEqual(VALORES_INICIALES);
     expect(estado.errores).toEqual({});
-    expect(estado.resultados).toEqual({ hipoteca: null, capacidad: null, ahorro: null });
+    expect(estado.resultados).toEqual({ hipoteca: null, capacidad: null, ahorro: null, asesor: null });
     expect(estado.foco.campo).toBeNull();
     expect(estado.mensaje).toBe(MENSAJE_BORRADO);
   });
@@ -228,5 +232,113 @@ describe('reducir', () => {
     Object.values(HERRAMIENTAS).forEach(({ campos }) => {
       campos.forEach((campo) => expect(DEPENDENCIAS).toHaveProperty(campo));
     });
+  });
+});
+
+// --- Asesor con IA ---
+
+const DATOS_ASESOR = {
+  ingresos: '6.000',
+  precio: '250.000',
+  trabajo1: 'funcionario_carrera',
+  antiguedad1: '8',
+  trabajo2: 'indefinido',
+  antiguedad2: '4',
+};
+const RESULTADO = { riesgo: 'bajo', viable: true, ofertas: [] };
+const ERROR = { codigo: 'limite', mensaje: 'límite' };
+
+describe('asesor: invalidación al cambiar los datos', () => {
+  const conResultado = () => ({
+    ...rellenar(estadoInicial(), DATOS_ASESOR),
+    resultados: { ...estadoInicial().resultados, asesor: { estado: 'ok', resultado: RESULTADO } },
+  });
+
+  it.each(['ingresos', 'periodo', 'precio', 'trabajo1', 'antiguedad1', 'trabajo2', 'antiguedad2'])(
+    'cambiar %s descarta la valoración anterior',
+    (campo) => {
+      expect(escribir(conResultado(), campo, 'x').resultados.asesor).toBeNull();
+    },
+  );
+
+  it.each(['interes', 'plazo', 'importe', 'ahorro', 'pagas'])('cambiar %s no la descarta', (campo) => {
+    expect(escribir(conResultado(), campo, '1').resultados.asesor).toEqual({ estado: 'ok', resultado: RESULTADO });
+  });
+});
+
+describe('asesor: acciones', () => {
+  const cargando = () => reducir(rellenar(estadoInicial(), DATOS_ASESOR), { tipo: 'asesorCargando' });
+
+  it('asesorCargando marca que se está esperando y limpia los errores del asesor', () => {
+    let estado = reducir(estadoInicial(), { tipo: 'asesorInvalido', errores: { trabajo1: 'falta', ingresos: 'falta' } });
+    estado = reducir(estado, { tipo: 'asesorCargando' });
+    expect(estado.resultados.asesor).toEqual({ estado: 'cargando' });
+    expect(estado.errores).toEqual({});
+  });
+
+  it('asesorCargando no toca los errores de otras herramientas', () => {
+    let estado = calcular(estadoInicial(), 'hipoteca'); // errores en interes, plazo e importe
+    estado = reducir(estado, { tipo: 'asesorCargando' });
+    expect(Object.keys(estado.errores).sort()).toEqual(['importe', 'interes', 'plazo']); // intactos
+  });
+
+  it('asesorOk guarda el resultado mientras se espera', () => {
+    const estado = reducir(cargando(), { tipo: 'asesorOk', resultado: RESULTADO });
+    expect(estado.resultados.asesor).toEqual({ estado: 'ok', resultado: RESULTADO });
+  });
+
+  it('asesorError guarda el error mientras se espera', () => {
+    const estado = reducir(cargando(), { tipo: 'asesorError', error: ERROR });
+    expect(estado.resultados.asesor).toEqual({ estado: 'error', error: ERROR });
+  });
+
+  it('una respuesta que llega cuando ya no se espera se ignora', () => {
+    const estado = escribir(cargando(), 'ingresos', '7.000'); // el usuario cambió un dato
+    expect(estado.resultados.asesor).toBeNull();
+    expect(reducir(estado, { tipo: 'asesorOk', resultado: RESULTADO })).toBe(estado);
+    expect(reducir(estado, { tipo: 'asesorError', error: ERROR })).toBe(estado);
+  });
+
+  it('una respuesta sin haber pedido nada también se ignora', () => {
+    const inicial = estadoInicial();
+    expect(reducir(inicial, { tipo: 'asesorOk', resultado: RESULTADO })).toBe(inicial);
+  });
+
+  it('una segunda respuesta, ya terminado, no pisa a la primera', () => {
+    let estado = reducir(cargando(), { tipo: 'asesorOk', resultado: RESULTADO });
+    estado = reducir(estado, { tipo: 'asesorError', error: ERROR });
+    expect(estado.resultados.asesor.estado).toBe('ok');
+  });
+
+  it('asesorInvalido guarda los errores, descarta la valoración y lleva el foco al primero en el orden de la página', () => {
+    const estado = reducir(cargando(), {
+      tipo: 'asesorInvalido',
+      errores: { antiguedad2: 'a', trabajo1: 'b', precio: 'c' },
+    });
+    expect(estado.errores).toEqual({ antiguedad2: 'a', trabajo1: 'b', precio: 'c' });
+    expect(estado.resultados.asesor).toBeNull();
+    expect(estado.foco.campo).toBe('precio'); // precio va antes que trabajo1 en la página
+  });
+
+  it('asesorInvalido sustituye los errores anteriores del asesor y conserva los de otras herramientas', () => {
+    let estado = calcular(estadoInicial(), 'hipoteca');
+    estado = reducir(estado, { tipo: 'asesorInvalido', errores: { trabajo1: 'antiguo' } });
+    estado = reducir(estado, { tipo: 'asesorInvalido', errores: { trabajo2: 'nuevo' } });
+    expect(estado.errores.trabajo1).toBeUndefined();
+    expect(estado.errores.trabajo2).toBe('nuevo');
+    expect(estado.errores.importe).toBeTruthy();
+  });
+
+  it('pedir el foco dos veces seguidas genera un objeto nuevo', () => {
+    const primero = reducir(estadoInicial(), { tipo: 'asesorInvalido', errores: { trabajo1: 'x' } });
+    const segundo = reducir(primero, { tipo: 'asesorInvalido', errores: { trabajo1: 'x' } });
+    expect(segundo.foco).not.toBe(primero.foco);
+  });
+
+  it('borrar vuelve a dejar el asesor sin consulta y los datos vacíos', () => {
+    const estado = reducir(reducir(cargando(), { tipo: 'asesorOk', resultado: RESULTADO }), { tipo: 'borrar' });
+    expect(estado.resultados.asesor).toBeNull();
+    expect(estado.valores.trabajo1).toBe('');
+    expect(estado.valores.antiguedad2).toBe('');
   });
 });
