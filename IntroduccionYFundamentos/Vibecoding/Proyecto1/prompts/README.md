@@ -9,4 +9,5 @@
 Cómo se usan:
 
 - Pruebas automáticas (sin red ni cuota): `cd backend && uv run pytest`.
-- Evaluación contra el Gemini real (gasta cuota, la lanzas tú): ver la fase 18 del `PLAN.md`.
+- Evaluación contra el Gemini real (gasta cuota de tu clave, la lanzas tú): `cd backend && uv run python -m app.evaluar`.
+  Usa una referencia fija del BCE (2,99 %), reintenta los fallos transitorios del servicio y no reintenta el límite de uso.
