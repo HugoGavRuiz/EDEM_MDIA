@@ -96,7 +96,7 @@ Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvico
 ## Ampliación: asesor de hipoteca con IA (Gemini)
 Decidido con el usuario: SDK `google-genai`; clave y modelo en `.env` (`GEMINI_API_KEY`, `GEMINI_MODEL`); respuesta JSON con índice de riesgo, viabilidad y hasta 3 ofertas (banco, tipo de interés, años, intereses acumulados y consejos de negociación); solo se envía lo mínimo (tipo de trabajo y antigüedad de cada titular, ingresos conjuntos, precio de la vivienda y el tipo medio del BCE), sin nombres ni edades. Los intereses acumulados se **recalculan en el backend**: no se confía en la aritmética de la IA. La respuesta es una estimación orientativa, no una oferta real, y así se avisa. Nada de lo que se escribe ni de lo que responde Gemini se guarda en la base de datos. Dependencia nueva (backend, fase 18): `google-genai`.
 
-- [ ] **Fase 17 — Prompt, casos de prueba y validación.**
+- [x] **Fase 17 — Prompt, casos de prueba y validación.**
   `prompts/asesor_hipoteca.md` (plantilla con huecos que solo reciben valores ya validados, nunca texto libre del usuario), `prompts/casos_prueba.json` (5 casos con entrada, resultado esperado y una respuesta de ejemplo), esquema de entrada y de salida con Pydantic, validador de la respuesta (estructura, rangos, coherencia, intereses recalculados) y evaluador de casos.
   Comprobación: `uv run pytest`: los 5 casos y sus respuestas de ejemplo pasan; respuestas con JSON roto, campos que faltan o sobran, tipos fuera de 0-20 %, años fuera de 1-40, cuota incoherente, viabilidad contradictoria o intereses falsos se rechazan o se corrigen.
 
