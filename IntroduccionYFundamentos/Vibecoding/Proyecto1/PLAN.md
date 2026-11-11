@@ -93,4 +93,19 @@ Dependencias nuevas, de una en una y avisando: backend (`uv`): `fastapi`, `uvico
   Hook que consulta `VITE_API_URL/tipos-interes`; botón «Usar el tipo medio actual (x,xx %)» con el mes del dato y el aviso de que es una media, no una oferta ni una TAE. Sin API o si falla, el botón no aparece y todo funciona igual.
   Comprobación: pruebas de la conversión valor→texto; e2e con la API simulada (disponible, caída, valor inválido ignorado) y una comprobación manual contra el backend real.
 
+## Ampliación: asesor de hipoteca con IA (Gemini)
+Decidido con el usuario: SDK `google-genai`; clave y modelo en `.env` (`GEMINI_API_KEY`, `GEMINI_MODEL`); respuesta JSON con índice de riesgo, viabilidad y hasta 3 ofertas (banco, tipo de interés, años, intereses acumulados y consejos de negociación); solo se envía lo mínimo (tipo de trabajo y antigüedad de cada titular, ingresos conjuntos, precio de la vivienda y el tipo medio del BCE), sin nombres ni edades. Los intereses acumulados se **recalculan en el backend**: no se confía en la aritmética de la IA. La respuesta es una estimación orientativa, no una oferta real, y así se avisa. Nada de lo que se escribe ni de lo que responde Gemini se guarda en la base de datos. Dependencia nueva (backend, fase 18): `google-genai`.
+
+- [ ] **Fase 17 — Prompt, casos de prueba y validación.**
+  `prompts/asesor_hipoteca.md` (plantilla con huecos que solo reciben valores ya validados, nunca texto libre del usuario), `prompts/casos_prueba.json` (5 casos con entrada, resultado esperado y una respuesta de ejemplo), esquema de entrada y de salida con Pydantic, validador de la respuesta (estructura, rangos, coherencia, intereses recalculados) y evaluador de casos.
+  Comprobación: `uv run pytest`: los 5 casos y sus respuestas de ejemplo pasan; respuestas con JSON roto, campos que faltan o sobran, tipos fuera de 0-20 %, años fuera de 1-40, cuota incoherente, viabilidad contradictoria o intereses falsos se rechazan o se corrigen.
+
+- [ ] **Fase 18 — `POST /asesor` con Gemini.**
+  Dependencia `google-genai`; configuración desde `.env` (sin clave o modelo → «no configurado»); llamada con JSON con esquema; traducción de errores: 429 → límite de uso, respuesta inválida → 502, servicio caído, clave o modelo rechazados o sin configurar → 503; CORS para POST; el `prompts/` se monta en el contenedor; script manual `evaluar_asesor` que lanza los 5 casos contra el Gemini real.
+  Comprobación: `uv run pytest` con Gemini simulado (éxito, JSON roto, esquema inválido, 429, error 5xx, clave rechazada, timeout, sin configurar, sin fugas de datos ni de la clave en errores y registros); con clave real, el script de evaluación lo ejecuta el usuario.
+
+- [ ] **Fase 19 — Sección «Asesor IA» en la interfaz.**
+  Trabajo y antigüedad de cada titular, reutilizando los ingresos y el precio que ya hay en la página; estado de carga, resultado con aviso de «estimación orientativa» y avisos accesibles para límite de uso, respuesta inválida y servicio no disponible. La sección no aparece si no hay backend.
+  Comprobación: pruebas unitarias de la lógica y e2e con la API simulada (éxito, 429, respuesta inválida, 503, red caída, validación de campos, cuerpo de la petición sin datos de más); comprobación manual con la clave real, a cargo del usuario.
+
 Fuera de plan: despliegue/publicación (requiere permiso explícito aparte).
