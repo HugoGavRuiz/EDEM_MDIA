@@ -18,17 +18,20 @@ export function periodoALegible(periodo) {
   return mes.format(new Date(Date.UTC(Number(coincidencia[1]), Number(coincidencia[2]) - 1, 1)));
 }
 
-// URL del endpoint a partir de la dirección base (VITE_API_URL); null si no hay una http(s) válida.
-export function urlTiposInteres(base) {
+// URL de un endpoint a partir de la dirección base (VITE_API_URL); null si no hay una http(s) válida.
+function urlDe(base, ruta) {
   if (typeof base !== 'string' || base.trim() === '') return null;
   try {
     const url = new URL(base.trim());
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-    return `${url.origin}/tipos-interes`;
+    return `${url.origin}${ruta}`;
   } catch {
     return null;
   }
 }
+
+export const urlTiposInteres = (base) => urlDe(base, '/tipos-interes');
+export const urlAsesor = (base) => urlDe(base, '/asesor');
 
 // Convierte la respuesta del backend en { texto, mes, desactualizado } o null si no es de fiar.
 // El texto resultante tiene que pasar la misma validación que cualquier interés escrito a mano.

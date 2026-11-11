@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { leerTipoMedio, periodoALegible, urlTiposInteres, valorATexto } from './tipoMedio.js';
+import { leerTipoMedio, periodoALegible, urlAsesor, urlTiposInteres, valorATexto } from './tipoMedio.js';
 import { validarInteres } from './validacion.js';
 
 const respuesta = (cambios = {}) => ({
@@ -105,5 +105,23 @@ describe('leerTipoMedio', () => {
     ['sin periodo', { ultimo: { valor: 2.99 } }],
   ])('descarta una respuesta %s', (_nombre, datos) => {
     expect(leerTipoMedio(datos)).toBeNull();
+  });
+});
+
+describe('urlAsesor', () => {
+  it('usa el origen de la dirección base y la ruta /asesor', () => {
+    expect(urlAsesor('http://localhost:8000')).toBe('http://localhost:8000/asesor');
+    expect(urlAsesor('https://api.ejemplo.es/ruta?x=1#y')).toBe('https://api.ejemplo.es/asesor');
+  });
+
+  it.each(['', '   ', undefined, null, 5, 'localhost:8000', 'javascript:alert(1)', 'ftp://x.es', 'file:///etc/passwd'])(
+    'devuelve null con %j (el asesor queda desactivado)',
+    (base) => {
+      expect(urlAsesor(base)).toBeNull();
+    },
+  );
+
+  it('comparte la misma validación que la URL de tipos de interés', () => {
+    expect(urlAsesor('http://a.es')?.replace('/asesor', '')).toBe(urlTiposInteres('http://a.es')?.replace('/tipos-interes', ''));
   });
 });
