@@ -1,0 +1,28 @@
+# Dependencias y builds
+node_modules
+dist
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+
+# Secretos y configuración local: nunca se suben. Solo .env.example (sin valores) se versiona.
+.env
+.env.*
+!.env.example
+
+# Bases de datos locales y copias de seguridad
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+data/
+
+# Pruebas e informes
+test-results
+playwright-report
+coverage
+
+# Registros y sistema
+*.log
+.DS_Store

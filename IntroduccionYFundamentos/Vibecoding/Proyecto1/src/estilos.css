@@ -1,0 +1,122 @@
+:root {
+  --fondo: #f4f6fa;
+  --tarjeta: #ffffff;
+  --texto: #1d2433;
+  --suave: #4b5565;
+  --acento: #1d4ed8;
+  --error: #b42318;
+  --borde: #c3cad6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.tarjeta {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--tarjeta);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+h1 { margin: 0 0 4px; font-size: 1.5rem; }
+.intro { margin: 0 0 20px; color: var(--suave); }
+
+fieldset { margin: 0 0 16px; padding: 12px 14px 4px; border: 1px solid var(--borde); border-radius: 8px; }
+legend { padding: 0 6px; font-weight: 700; }
+
+.campo { margin-bottom: 12px; }
+label { display: block; margin-bottom: 4px; font-weight: 600; }
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit; /* 16 px: evita el zoom automático en móvil */
+  color: inherit;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+input:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.35); border-color: var(--acento); }
+input[aria-invalid="true"] { border-color: var(--error); }
+
+.error { min-height: 1.2em; margin: 4px 0 0; color: var(--error); font-size: 0.875rem; }
+
+button {
+  width: 100%;
+  padding: 12px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--acento);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.1); }
+button:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.45); outline-offset: 2px; }
+
+.seccion { margin-top: 24px; }
+.tipo-medio { margin: -4px 0 14px; }
+.tipo-medio button { margin-bottom: 4px; }
+.ayuda { margin: 4px 0 0; color: var(--suave); font-size: 0.875rem; }
+[hidden] { display: none !important; }
+
+select {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+select:focus-visible { outline: 3px solid rgba(29, 78, 216, 0.35); border-color: var(--acento); }
+
+.avisos { margin-top: 24px; padding: 12px 14px; background: var(--fondo); border-radius: 8px; font-size: 0.875rem; color: var(--suave); }
+.avisos h2 { margin-bottom: 4px; font-size: 1rem; }
+.avisos ul { margin: 0; padding-left: 18px; }
+
+.pie { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--borde); }
+.pie p { min-height: 1.2em; margin: 8px 0 0; color: var(--suave); font-size: 0.875rem; }
+button.secundario { color: var(--texto); background: transparent; border: 1px solid var(--borde); }
+
+.resultado { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--borde); }
+.resultado[hidden] { display: none; }
+h2 { margin: 0 0 8px; font-size: 1.2rem; }
+h3 { margin: 16px 0 8px; font-size: 1rem; }
+
+.resumen { margin: 0; }
+.fila { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; padding: 6px 0; }
+.fila dt { color: var(--suave); }
+.fila dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fila.principal dd { font-size: 1.4rem; color: var(--acento); }
+
+.leyenda { display: flex; gap: 16px; margin: 0 0 4px; padding: 0; list-style: none; font-size: 0.875rem; color: var(--suave); }
+.muestra { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; }
+.muestra.capital, .grafico .capital { fill: var(--acento); background: var(--acento); }
+.muestra.intereses, .grafico .intereses { fill: #b45309; background: #b45309; }
+.grafico { display: block; width: 100%; height: auto; }
+.grafico .rejilla { stroke: var(--borde); stroke-width: 1; }
+.grafico .eje { fill: var(--suave); font-size: 11px; }
+
+.mensaje { margin: 12px 0 0; font-weight: 600; }
+.mensaje:empty { display: none; }
+.mensaje.alerta { color: var(--error); }
+.tabla caption { padding: 8px 10px; text-align: left; font-size: 0.875rem; color: var(--suave); }
+
+.tabla-scroll { max-height: 320px; overflow: auto; border: 1px solid var(--borde); border-radius: 8px; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.tabla th, .tabla td { padding: 8px 10px; text-align: right; white-space: nowrap; }
+.tabla thead th { position: sticky; top: 0; background: var(--fondo); color: var(--suave); }
+.tabla th[scope="row"] { text-align: center; font-weight: 600; }
+.tabla tbody tr:nth-child(even) { background: var(--fondo); }

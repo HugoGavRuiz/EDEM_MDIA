@@ -1,0 +1,168 @@
+import { expect, test } from '@playwright/test';
+
+async function rellenar(page, { interes, plazo, importe }) {
+  await page.getByLabel('Interés anual').fill(interes);
+  await page.getByLabel('Plazo (años)').fill(plazo);
+  await page.getByLabel('Importe del préstamo').fill(importe);
+}
+
+const calcular = (page) => page.getByRole('button', { name: 'Calcular cuota', exact: true }).click();
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+});
+
+test('muestra el título y el resultado está oculto al empezar', async ({ page }) => {
+  await expect(page).toHaveTitle('Planificador de hipoteca');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Planificador de hipoteca');
+  await expect(page.locator('#resultado')).toBeHidden();
+});
+
+test('calcula la cuota de 150.000 € al 3,5 % a 30 años', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
+});
+
+test('muestra total, intereses y la tabla de amortización anual', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#total')).toHaveText(/^242\.484,13\s€$/);
+  await expect(page.locator('#intereses')).toHaveText(/^92\.484,13\s€$/);
+
+  const filas = page.locator('#tabla-amortizacion tr');
+  await expect(filas).toHaveCount(30);
+  await expect(filas.last().getByRole('rowheader')).toHaveText('30');
+  await expect(filas.last().getByRole('cell').last()).toHaveText(/^0,00\s€$/);
+});
+
+test('la tabla tiene cabeceras de columna y de fila', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.getByRole('columnheader')).toHaveText([
+    'Año', 'Intereses', 'Capital amortizado', 'Capital pendiente',
+  ]);
+  await expect(page.getByRole('rowheader')).toHaveCount(30);
+});
+
+test('con otro plazo la tabla se actualiza', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await page.getByLabel('Plazo (años)').fill('10');
+  await calcular(page);
+  await expect(page.locator('#tabla-amortizacion tr')).toHaveCount(10);
+});
+
+test('admite interés 0 %', async ({ page }) => {
+  await rellenar(page, { interes: '0', plazo: '10', importe: '120.000' });
+  await calcular(page);
+  await expect(page.locator('#cuota')).toHaveText(/^1000,00\s€$/);
+});
+
+test('con campos vacíos muestra un error junto a cada campo y no calcula', async ({ page }) => {
+  await calcular(page);
+  for (const id of ['interes', 'plazo', 'importe']) {
+    await expect(page.locator(`#error-${id}`)).toHaveText('Introduce un número.');
+    await expect(page.locator(`#${id}`)).toHaveAttribute('aria-invalid', 'true');
+  }
+  await expect(page.locator('#resultado')).toBeHidden();
+  await expect(page.locator('#interes')).toBeFocused();
+});
+
+test('solo marca el campo inválido y explica el formato', async ({ page }) => {
+  await rellenar(page, { interes: '3.5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#error-interes')).toContainText('coma');
+  await expect(page.locator('#interes')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#error-plazo')).toHaveText('');
+  await expect(page.locator('#plazo')).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#resultado')).toBeHidden();
+});
+
+test('el error desaparece al corregir el campo y se puede calcular', async ({ page }) => {
+  await rellenar(page, { interes: '3.5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await page.getByLabel('Interés anual').fill('3,5');
+  await expect(page.locator('#error-interes')).toHaveText('');
+  await calcular(page);
+  await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
+});
+
+test('un error posterior oculta el resultado anterior', async ({ page }) => {
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#resultado')).toBeVisible();
+  await page.getByLabel('Plazo (años)').fill('41');
+  await calcular(page);
+  await expect(page.locator('#error-plazo')).toHaveText('Debe estar entre 1 y 40 años.');
+  await expect(page.locator('#resultado')).toBeHidden();
+});
+
+test('es usable a 375 px: sin desplazamiento horizontal y calcula', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 700 });
+  const sinDesbordar = await page.evaluate(
+    () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+  );
+  expect(sinDesbordar).toBe(true);
+  await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+  await calcular(page);
+  await expect(page.locator('#cuota')).toHaveText(/^673,57\s€$/);
+  await expect(page.getByRole('button', { name: 'Calcular cuota', exact: true })).toBeInViewport();
+});
+
+test.describe('gráfico', () => {
+  test('dibuja una barra apilada por año del plazo, con título accesible', async ({ page }) => {
+    await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+    await calcular(page);
+
+    const grafico = page.getByRole('img', { name: 'Capital e intereses por año' });
+    await expect(grafico).toBeVisible();
+    await expect(grafico.locator('g.barra')).toHaveCount(30);
+    await expect(grafico.locator('g.barra rect.capital')).toHaveCount(30);
+    await expect(grafico.locator('g.barra rect.intereses')).toHaveCount(30);
+    await expect(grafico.locator('g.barra').first().locator('title')).toHaveText(/^Año 1\. Capital: .* Intereses: .*\.$/);
+    await expect(grafico).toHaveAccessibleDescription(/Los mismos datos están en la tabla/);
+  });
+
+  test('con otro plazo el gráfico se redibuja', async ({ page }) => {
+    await rellenar(page, { interes: '3,5', plazo: '30', importe: '150.000' });
+    await calcular(page);
+    await page.getByLabel('Plazo (años)').fill('10');
+    await calcular(page);
+    await expect(page.locator('#grafico g.barra')).toHaveCount(10);
+  });
+
+  test('con interés 0 % las barras de intereses no tienen altura', async ({ page }) => {
+    await rellenar(page, { interes: '0', plazo: '10', importe: '120.000' });
+    await calcular(page);
+    const alturas = await page.locator('#grafico rect.intereses').evaluateAll(
+      (rects) => rects.map((r) => Number(r.getAttribute('height'))),
+    );
+    expect(alturas).toHaveLength(10);
+    expect(alturas.every((a) => a === 0)).toBe(true);
+  });
+
+  test('las barras no contienen NaN y no hay errores de consola', async ({ page }) => {
+    const errores = [];
+    page.on('pageerror', (e) => errores.push(e.message));
+    page.on('console', (m) => { if (m.type() === 'error') errores.push(m.text()); });
+    await rellenar(page, { interes: '3,5', plazo: '40', importe: '99.999.999' });
+    await calcular(page);
+    await expect(page.locator('#grafico g.barra')).toHaveCount(40);
+    const atributos = await page.locator('#grafico rect').evaluateAll(
+      (rects) => rects.flatMap((r) => ['x', 'y', 'width', 'height'].map((a) => r.getAttribute(a))),
+    );
+    expect(atributos.some((v) => v === null || /NaN|Infinity/.test(v))).toBe(false);
+    expect(errores).toEqual([]);
+  });
+
+  test('a 375 px el gráfico no provoca desplazamiento horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await rellenar(page, { interes: '3,5', plazo: '40', importe: '150.000' });
+    await calcular(page);
+    const sinDesbordar = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    );
+    expect(sinDesbordar).toBe(true);
+  });
+});

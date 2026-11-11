@@ -1,0 +1,29 @@
+# Desarrollo local. Las credenciales salen de .env (que no se sube a git).
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .env
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432" # solo accesible desde este ordenador
+    volumes:
+      - db_datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db # dentro de la red de Docker la base se llama "db"
+      POSTGRES_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_PORT}:8000"
+
+volumes:
+  db_datos:
