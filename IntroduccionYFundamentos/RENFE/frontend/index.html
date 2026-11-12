@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <!-- ======================================================================
+       BLOQUE 1: Cabecera del documento
+       Codificación, adaptación a móvil, título y hoja de estilos de Leaflet
+       (librería de mapas) desde un CDN con versión fija.
+       ====================================================================== -->
+  <meta charset="utf-8">                                                   <!-- Tildes y ñ correctas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">    <!-- Escala correcta en móvil -->
+  <title>Trenes Renfe en directo</title>                                  <!-- Título de la pestaña -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"> <!-- Estilos de Leaflet -->
+
+  <style>
+    /* ====================================================================
+       BLOQUE 2: Colores (tema claro y oscuro)
+       Todos los colores se definen como variables; el tema oscuro solo
+       cambia los valores.
+       ==================================================================== */
+    :root {
+      --bg: #f6f7f9;            /* Fondo de la página */
+      --panel: #ffffff;         /* Fondo de los paneles */
+      --text: #1b1f24;          /* Texto principal */
+      --muted: #5f6b7a;         /* Texto secundario */
+      --border: #dfe3e8;        /* Bordes */
+      --accent: #7a1f5c;        /* Color de marca (morado Renfe aproximado) */
+      --transit: #2563eb;       /* Tren en marcha */
+      --stopped: #6b7280;       /* Tren parado */
+      --alert: #dc2626;         /* Tren con alerta */
+      --ok: #15803d;            /* Estado correcto */
+      --warn: #b45309;          /* Aviso */
+      --row-hover: #f1f3f6;     /* Fila al pasar el ratón */
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1216; --panel: #171b21; --text: #e6e9ee; --muted: #9aa4b2;  /* Fondo, panel y textos oscuros */
+        --border: #2a313b; --accent: #d16aa8; --transit: #60a5fa;             /* Bordes y acentos */
+        --stopped: #9ca3af; --alert: #f87171; --ok: #4ade80; --warn: #fbbf24; /* Estados */
+        --row-hover: #1f252d;                                                 /* Fila al pasar el ratón */
+      }
+    }
+
+    /* ====================================================================
+       BLOQUE 3: Estructura de la página
+       Cabecera arriba; debajo, mapa a la izquierda y panel a la derecha.
+       En pantallas estrechas el panel pasa debajo del mapa.
+       ==================================================================== */
+    * { box-sizing: border-box; }                                              /* Medidas incluyen el borde */
+    html, body { margin: 0; height: 100%; }                                    /* Página a pantalla completa */
+    body { background: var(--bg); color: var(--text);                          /* Colores base */
+           font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;   /* Tipografía del sistema */
+           display: grid; grid-template-rows: auto auto 1fr; }                 /* Cabecera, aviso, contenido */
+    header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; /* Fila flexible */
+             padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+    header h1 { font-size: 17px; margin: 0; }                                  /* Título */
+    header h1 span { color: var(--accent); }                                   /* Parte destacada del título */
+    .meta { color: var(--muted); font-size: 13px; }                            /* Texto secundario */
+    .spacer { flex: 1; }                                                       /* Empuja lo siguiente a la derecha */
+    main { display: grid; grid-template-columns: 1fr 380px; min-height: 0; }   /* Mapa + panel */
+    #map { min-height: 300px; }                                                /* Altura mínima del mapa */
+    aside { background: var(--panel); border-left: 1px solid var(--border);    /* Panel lateral */
+            display: flex; flex-direction: column; min-height: 0; }
+    @media (max-width: 800px) {                                                /* Móvil / pantalla estrecha */
+      main { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }      /* Mapa arriba, panel abajo */
+      aside { border-left: 0; border-top: 1px solid var(--border); }           /* Borde arriba en vez de a la izquierda */
+    }
+
+    /* ====================================================================
+       BLOQUE 4: Indicador de estado y aviso
+       ==================================================================== */
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; /* Etiqueta redondeada */
+            border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid currentColor; }
+    .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; } /* Punto de color */
+    .pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.down { color: var(--alert); } /* Colores por estado */
+    .pill.loading { color: var(--muted); }                                     /* Cargando */
+    #banner { display: none; padding: 8px 16px; font-size: 13px;               /* Aviso oculto por defecto */
+              background: color-mix(in srgb, var(--warn) 14%, var(--panel)); border-bottom: 1px solid var(--border); }
+    #banner.down { background: color-mix(in srgb, var(--alert) 14%, var(--panel)); } /* Aviso de servicio caído */
+    #banner.show { display: block; }                                           /* Aviso visible */
+
+    /* ====================================================================
+       BLOQUE 5: Pestañas, listas y tabla del panel
+       ==================================================================== */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); }           /* Barra de pestañas */
+    .tabs button { flex: 1; padding: 10px; background: none; border: 0;         /* Botón de pestaña */
+                   border-bottom: 2px solid transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+    .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); } /* Pestaña activa */
+    .tab { display: none; overflow: auto; flex: 1; min-height: 0; }            /* Contenido de pestaña oculto */
+    .tab.active { display: block; }                                            /* Contenido visible */
+    .empty { padding: 24px 16px; color: var(--muted); text-align: center; }   /* Mensaje de lista vacía */
+    .alert-item { padding: 10px 16px; border-bottom: 1px solid var(--border); cursor: pointer; } /* Una alerta */
+    .alert-item:hover, tr:hover td { background: var(--row-hover); }           /* Resaltado al pasar el ratón */
+    .alert-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; } /* Línea principal */
+    .dist { color: var(--alert); font-variant-numeric: tabular-nums; }         /* Distancia en rojo */
+    .badge { font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); } /* Etiqueta pequeña */
+    .search { padding: 8px 16px; border-bottom: 1px solid var(--border); }     /* Caja de búsqueda */
+    .search input { width: 100%; padding: 6px 8px; font: inherit; color: var(--text); /* Campo de búsqueda */
+                    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }         /* Tabla de trenes */
+    th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; } /* Celdas */
+    th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 600; } /* Cabecera fija */
+    td.num { font-variant-numeric: tabular-nums; }                             /* Números alineados */
+    tbody tr { cursor: pointer; }                                              /* Filas clicables */
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; } /* Punto de estado */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 16px;    /* Leyenda del mapa */
+              border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    .nearby { margin-top: 8px; padding-top: 6px; border-top: 1px solid #ddd; min-width: 230px; } /* Bloque de trenes cercanos en el globo */
+    .nearby h4 { margin: 6px 0 2px; font-size: 12px; }                          /* Título de cada grupo */
+    .nearby ul { list-style: none; margin: 0; padding: 0; max-height: 120px; overflow-y: auto; } /* Lista con scroll */
+    .nearby li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; cursor: pointer; font-variant-numeric: tabular-nums; } /* Un tren */
+    .nearby li:hover { text-decoration: underline; }                            /* Clicable */
+    .nearby .appr { color: #b91c1c; }                                           /* Se acercan */
+    .nearby .rec { color: #15803d; }                                            /* Se alejan */
+    .nearby .note { color: #6b7280; font-size: 11px; }                          /* Texto secundario */
+    .disclaimer { padding: 8px 16px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); } /* Aviso legal */
+  </style>
+</head>
+<body>
+  <!-- ======================================================================
+       BLOQUE 6: Contenido HTML
+       Cabecera con estado, aviso, mapa y panel con dos pestañas.
+       ====================================================================== -->
+  <header>
+    <h1>Trenes <span>Renfe</span> en directo</h1>                            <!-- Título -->
+    <span id="status" class="pill loading">Cargando…</span>                  <!-- Estado del servicio -->
+    <span class="spacer"></span>                                             <!-- Separador flexible -->
+    <span class="meta" id="feedTime">Última lectura: —</span>                <!-- Hora de los datos -->
+    <span class="meta" id="lastPoll">Actualizado: —</span>                   <!-- Hora del último sondeo -->
+  </header>
+  <div id="banner" role="status"></div>                                      <!-- Aviso de datos antiguos o servicio caído -->
+  <main>
+    <div id="map" aria-label="Mapa de posiciones de trenes"></div>          <!-- Contenedor del mapa -->
+    <aside>
+      <div class="tabs" role="tablist">                                      <!-- Pestañas -->
+        <button role="tab" aria-selected="true" data-tab="alerts" id="tabAlerts">Alertas (0)</button>
+        <button role="tab" aria-selected="false" data-tab="trains" id="tabTrains">Trenes (0)</button>
+      </div>
+      <div class="tab active" id="alerts"><div class="empty">Cargando alertas…</div></div> <!-- Lista de alertas -->
+      <div class="tab" id="trains">                                          <!-- Tabla de trenes -->
+        <div class="search"><input id="filter" type="search" placeholder="Buscar tren o estación…" aria-label="Buscar tren o estación"></div>
+        <table>
+          <thead><tr><th>Tren</th><th>Estado</th><th>Estación</th><th>Lat</th><th>Lon</th></tr></thead>
+          <tbody id="trainRows"></tbody>
+        </table>
+      </div>
+      <div class="legend">                                                   <!-- Leyenda de colores -->
+        <span><span class="dot" style="background:var(--transit)"></span>En marcha</span>
+        <span><span class="dot" style="background:var(--stopped)"></span>Parado</span>
+        <span><span class="dot" style="background:var(--alert)"></span>Con alerta</span>
+      </div>
+      <div class="disclaimer">Datos operativos orientativos de Renfe, con posible retraso o imprecisión GPS. No es un sistema de seguridad ferroviaria.</div>
+    </aside>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script> <!-- Librería de mapas -->
+  <script>
+    // ======================================================================
+    // BLOQUE 7: Configuración
+    // La API se consulta por /api/... (nginx la reenvía al backend), así el
+    // navegador nunca ve la base de datos ni sus credenciales.
+    // ======================================================================
+    const API = "/api";                                    // Prefijo de la API (proxy de nginx)
+    const POLL_MS = 15000;                                 // Sondeo cada 15 s (lo que tarda la fuente en actualizarse)
+    let config = { alert_distance_meters: 1000, max_position_age_seconds: 300 }; // Valores por defecto; se actualizan desde /health
+    const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim(); // Lee un color del CSS
+
+    // ======================================================================
+    // BLOQUE 8: Mapa
+    // Mapa centrado en España con teselas de OpenStreetMap. Guardamos un
+    // marcador por tren para moverlo en vez de recrearlo en cada sondeo.
+    // ======================================================================
+    const map = L.map("map", { preferCanvas: true }).setView([40.2, -3.7], 6); // Mapa sobre España
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {      // Capa base de OpenStreetMap
+      maxZoom: 18,                                                           // Zoom máximo
+      attribution: "&copy; colaboradores de OpenStreetMap",                  // Atribución obligatoria
+    }).addTo(map);                                                           // Añadimos la capa al mapa
+    const markers = new Map();                                               // vehicle_id -> marcador
+    const alertLines = L.layerGroup().addTo(map);                            // Líneas entre trenes con alerta
+    let fitted = false;                                                      // ¿Ya encuadramos el mapa a los trenes?
+    let lastTrains = [];                                                     // Últimos trenes recibidos (para filtrar la tabla)
+    let alertIds = new Set();                                                // Trenes con alerta en la última lectura
+
+    // ======================================================================
+    // BLOQUE 9: Utilidades
+    // ======================================================================
+    function esc(value) {                                                    // Escapa texto antes de meterlo en HTML
+      return String(value ?? "—").replace(/[&<>"']/g, (c) =>                 // Sustituye caracteres peligrosos
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); // por sus entidades HTML
+    }
+    function fmtTime(iso) {                                                  // Fecha ISO -> hora local de Madrid
+      if (!iso) return "—";                                                  // Sin fecha
+      return new Date(iso).toLocaleString("es-ES", { timeZone: "Europe/Madrid", // Zona horaria peninsular
+        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }); // Formato corto
+    }
+    function fmtAge(seconds) {                                               // Segundos -> "hace X"
+      if (seconds < 60) return `hace ${Math.round(seconds)} s`;              // Menos de un minuto
+      if (seconds < 3600) return `hace ${Math.round(seconds / 60)} min`;     // Menos de una hora
+      if (seconds < 86400) return `hace ${(seconds / 3600).toFixed(1)} h`;   // Menos de un día
+      return `hace ${(seconds / 86400).toFixed(1)} días`;                    // Más de un día
+    }
+    const fmtM = (m) => m < 1000 ? `${m.toFixed(1)} m` : `${(m / 1000).toFixed(2)} km`; // Metros legibles
+    const STATUS_TXT = { STOPPED_AT: "Parado", IN_TRANSIT_TO: "En marcha" }; // Traducción del estado
+    const REL_TXT = { same: "mismo sentido", opposite: "sentido opuesto", unknown: "sentido no confirmado" }; // Traducción de la relación
+    const COMPASS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];          // Rumbo en 8 direcciones
+    const fmtHeading = (deg) => deg == null ? "" : `${COMPASS[Math.round(deg / 45) % 8]} ${Math.round(deg)}°`; // Grados -> "NE 47°"
+    function whereTxt(status, name, id) {                                    // "hacia X" / "parado en X"
+      const st = name || id;                                                 // Nombre o, si falta, el id
+      if (!st) return "estación desconocida";                                // Sin estación
+      return status === "STOPPED_AT" ? `parado en ${st}` : `hacia ${st}`;    // Según el estado
+    }
+    async function getJSON(path) {                                           // Petición GET que devuelve JSON
+      const res = await fetch(API + path, { cache: "no-store" });            // Sin caché: siempre datos frescos
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);                    // Error HTTP -> excepción
+      return res.json();                                                     // Cuerpo como objeto
+    }
+
+    // ======================================================================
+    // BLOQUE 10: Estado del servicio
+    // Muestra "En directo", "Datos antiguos", "Sin datos" o "API no
+    // disponible", con un aviso explicativo cuando no es "En directo".
+    // ======================================================================
+    function setStatus(kind, label, message) {
+      const pill = document.getElementById("status");                        // Etiqueta de estado
+      pill.className = `pill ${kind}`;                                       // Color según el estado
+      pill.textContent = label;                                              // Texto del estado
+      const banner = document.getElementById("banner");                      // Barra de aviso
+      banner.textContent = message || "";                                    // Mensaje (o vacío)
+      banner.className = message ? `show ${kind === "down" ? "down" : ""}` : ""; // Visible solo si hay mensaje
+    }
+
+    // ======================================================================
+    // BLOQUE 11: Pintar los trenes en el mapa
+    // Crea, mueve o elimina marcadores según la última respuesta.
+    // ======================================================================
+    function markerStyle(t) {                                                // Estilo del círculo de un tren
+      const inAlert = alertIds.has(t.vehicle_id);                            // ¿Está en una alerta?
+      const color = inAlert ? css("--alert")                                 // Rojo si tiene alerta
+        : t.current_status === "STOPPED_AT" ? css("--stopped") : css("--transit"); // Gris parado, azul en marcha
+      return { radius: inAlert ? 8 : 6, color: "#fff", weight: 1.5, fillColor: color, fillOpacity: 0.9 }; // Más grande si hay alerta
+    }
+    function popupHtml(t) {                                                  // Contenido del globo al pulsar un tren
+      return `<b>Tren ${esc(t.vehicle_id)}</b><br>` +                        // Identificador
+        `Viaje: ${esc(t.trip_id)}<br>` +                                     // Viaje
+        `Estado: ${esc(STATUS_TXT[t.current_status] || t.current_status)}<br>` + // Estado traducido
+        `${t.current_status === "STOPPED_AT" ? "Parado en" : "Próxima estación"}: ${esc(t.stop_name)} (${esc(t.stop_id)})<br>` + // Estación
+        `Lat/Lon: ${t.latitude.toFixed(5)}, ${t.longitude.toFixed(5)}<br>` + // Coordenadas
+        `Posición: ${esc(fmtTime(t.position_timestamp))}` +                  // Hora de la posición
+        `<div class="nearby" data-for="${esc(t.vehicle_id)}">` +             // Trenes cercanos (se rellena al abrir)
+          (nearbyHtml.get(t.vehicle_id) || `<span class="note">Buscando trenes en ${NEARBY_KM} km…</span>`) +
+        `</div>`;
+    }
+
+    // ----------------------------------------------------------------------
+    // Trenes cercanos: al abrir el globo de un tren pedimos /getCercanos y
+    // mostramos cuáles se acercan y cuáles se alejan en un radio de 50 km.
+    // Se recalcula en cada sondeo mientras el globo siga abierto.
+    // ----------------------------------------------------------------------
+    const NEARBY_KM = 50;                                                    // Radio de búsqueda
+    const nearbyHtml = new Map();                                            // vehicle_id -> último HTML calculado
+    let openId = null;                                                       // Tren con el globo abierto
+    const fmtKm = (m) => `${(m / 1000).toFixed(1)} km`;                      // Metros -> km
+    const fmtDelta = (m) => `${m < 0 ? "−" : "+"}${fmtM(Math.abs(m))}`;      // Variación con signo
+    function nearbyList(title, cls, items) {                                 // Un grupo (acercándose / alejándose)
+      const lis = items.map((n) =>                                           // Una línea por tren
+        `<li data-goto="${esc(n.vehicle_id)}"><span>${esc(n.vehicle_id)} · ${esc(whereTxt(n.current_status, n.stop_name))}</span>` +
+        `<span class="${cls}">${fmtKm(n.distance_m)} (${fmtDelta(n.change_m)})</span></li>`).join("");
+      return `<h4 class="${cls}">${title} (${items.length})</h4>` +          // Título con contador
+        (items.length ? `<ul>${lis}</ul>` : `<span class="note">Ninguno</span>`);
+    }
+    async function loadNearby(id) {
+      let html;                                                              // HTML resultante
+      try {
+        const r = await getJSON(`/getCercanos/${encodeURIComponent(id)}?radio_km=${NEARBY_KM}`); // Pedimos al backend
+        const total = r.approaching.length + r.receding.length + r.other.length; // Trenes en el radio
+        html = `<b>Trenes en ${NEARBY_KM} km: ${total}</b>` +                // Resumen
+          nearbyList("↘ Acercándose", "appr", r.approaching) +               // Se acercan
+          nearbyList("↗ Alejándose", "rec", r.receding) +                    // Se alejan
+          (r.other.length ? `<div class="note">${r.other.length} sin cambio o sin lectura anterior</div>` : "");
+      } catch (err) {                                                        // Error o tren sin posición reciente
+        html = `<span class="note">No se pudieron calcular los trenes cercanos (${esc(err.message)})</span>`;
+      }
+      nearbyHtml.set(id, html);                                              // Guardamos para los repintados
+      const box = document.querySelector(`.nearby[data-for="${CSS.escape(id)}"]`); // Bloque del globo abierto
+      if (box) { box.innerHTML = html; markers.get(id)?.getPopup()?.update(); } // Actualizamos y reajustamos el globo
+    }
+    document.addEventListener("click", (e) => {                              // Clic en un tren de la lista
+      const id = e.target.closest(".nearby li")?.dataset.goto;               // Id del tren pulsado
+      const m = id && markers.get(id);                                       // Su marcador
+      if (m) { map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 10)); m.openPopup(); } // Vamos a él y abrimos su globo
+    }, true);                                                                // Captura: Leaflet frena la propagación en los globos
+    function renderTrains(trains) {
+      const seen = new Set();                                                // Trenes presentes en esta respuesta
+      for (const t of trains) {                                              // Recorremos los trenes
+        seen.add(t.vehicle_id);                                              // Lo marcamos como presente
+        let m = markers.get(t.vehicle_id);                                   // ¿Ya tenía marcador?
+        if (!m) {                                                            // Tren nuevo
+          m = L.circleMarker([t.latitude, t.longitude]).addTo(map);          // Creamos su círculo
+          markers.set(t.vehicle_id, m);                                      // Lo guardamos
+          const id = t.vehicle_id;                                           // Id para los eventos del globo
+          m.on("popupopen", () => { openId = id; loadNearby(id); });         // Al abrir: calculamos cercanos
+          m.on("popupclose", () => { if (openId === id) openId = null; });   // Al cerrar: dejamos de actualizar
+        } else {                                                             // Tren ya conocido
+          m.setLatLng([t.latitude, t.longitude]);                            // Lo movemos a la nueva posición
+        }
+        m.setStyle(markerStyle(t));                                          // Color según estado / alerta
+        m.bindPopup(popupHtml(t));                                           // Globo con los datos
+        m.bindTooltip(`Tren ${esc(t.vehicle_id)}`);                          // Etiqueta al pasar el ratón
+      }
+      for (const [id, m] of markers) {                                       // Marcadores que ya no vienen
+        if (!seen.has(id)) { map.removeLayer(m); markers.delete(id); }       // Se quitan del mapa
+      }
+      if (!fitted && trains.length) {                                        // Primera vez con datos
+        map.fitBounds(L.latLngBounds(trains.map((t) => [t.latitude, t.longitude])), { padding: [30, 30] }); // Encuadramos todos los trenes
+        fitted = true;                                                       // No volver a encuadrar en cada sondeo
+      }
+      lastTrains = trains;                                                   // Guardamos para la tabla
+      renderTable();                                                         // Actualizamos la tabla
+      document.getElementById("tabTrains").textContent = `Trenes (${trains.length})`; // Contador en la pestaña
+    }
+
+    // ======================================================================
+    // BLOQUE 12: Tabla de trenes (con buscador)
+    // Pulsar una fila centra el mapa en ese tren y abre su globo.
+    // ======================================================================
+    function renderTable() {
+      const q = document.getElementById("filter").value.trim().toLowerCase(); // Texto a buscar
+      const rows = lastTrains.filter((t) => !q ||                            // Sin búsqueda: todos
+        t.vehicle_id.toLowerCase().includes(q) ||                            // Coincide el id
+        (t.stop_name || "").toLowerCase().includes(q));                      // o el nombre de la estación
+      const tbody = document.getElementById("trainRows");                    // Cuerpo de la tabla
+      if (!rows.length) {                                                    // Nada que mostrar
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">${lastTrains.length ? "Ningún tren coincide" : "Sin trenes"}</td></tr>`;
+        return;                                                              // Terminamos
+      }
+      tbody.innerHTML = rows.map((t) => {                                    // Una fila por tren
+        const color = alertIds.has(t.vehicle_id) ? "var(--alert)"            // Rojo si tiene alerta
+          : t.current_status === "STOPPED_AT" ? "var(--stopped)" : "var(--transit)"; // Gris o azul
+        return `<tr data-id="${esc(t.vehicle_id)}">` +                       // Fila con el id del tren
+          `<td><span class="dot" style="background:${color}"></span>${esc(t.vehicle_id)}</td>` + // Tren
+          `<td>${esc(STATUS_TXT[t.current_status] || t.current_status)}</td>` + // Estado
+          `<td>${esc(whereTxt(t.current_status, t.stop_name, t.stop_id))}</td>` + // Hacia / parado en
+          `<td class="num">${t.latitude.toFixed(4)}</td>` +                  // Latitud
+          `<td class="num">${t.longitude.toFixed(4)}</td></tr>`;             // Longitud
+      }).join("");                                                           // Unimos todas las filas
+    }
+    document.getElementById("filter").addEventListener("input", renderTable); // Filtrar al escribir
+    document.getElementById("trainRows").addEventListener("click", (e) => {  // Clic en una fila
+      const id = e.target.closest("tr")?.dataset.id;                         // Id del tren de esa fila
+      const m = id && markers.get(id);                                       // Su marcador
+      if (m) { map.flyTo(m.getLatLng(), 13); m.openPopup(); }                // Volamos al tren y abrimos su globo
+    });
+
+    // ======================================================================
+    // BLOQUE 13: Lista de alertas
+    // Muestra trenes, distancia, umbral, sentido y hora. Las alertas de la
+    // última lectura se dibujan como línea roja entre los dos trenes.
+    // ======================================================================
+    let lastAlerts = [];                                                     // Últimas alertas recibidas
+    function renderAlerts(alerts, latestTs) {
+      lastAlerts = alerts;                                                   // Guardamos para el clic
+      const current = alerts.filter((a) => a.position_timestamp === latestTs); // Alertas de la lectura más reciente
+      alertIds = new Set(current.flatMap((a) => [a.train_a, a.train_b]));    // Trenes con alerta ahora mismo
+      alertLines.clearLayers();                                              // Borramos líneas anteriores
+      for (const a of current) {                                             // Una línea por alerta actual
+        L.polyline([[a.lat_a, a.lon_a], [a.lat_b, a.lon_b]],                 // Entre los dos trenes
+          { color: css("--alert"), weight: 3, dashArray: "4 4" }).addTo(alertLines); // Roja y discontinua
+      }
+      document.getElementById("tabAlerts").textContent = `Alertas (${current.length})`; // Contador: alertas actuales
+      const box = document.getElementById("alerts");                         // Contenedor de la lista
+      if (!alerts.length) {                                                  // Ninguna alerta registrada
+        box.innerHTML = `<div class="empty">Sin alertas registradas.<br>Umbral actual: ${fmtM(config.alert_distance_meters)}</div>`;
+        return;                                                              // Terminamos
+      }
+      box.innerHTML = alerts.map((a, i) =>                                   // Una tarjeta por alerta
+        `<div class="alert-item" data-i="${i}">` +                           // Índice para el clic
+          `<div class="alert-top"><span>${esc(a.train_a)} ↔ ${esc(a.train_b)}</span>` + // Trenes
+          `<span class="dist">${fmtM(a.distance_m)}</span></div>` +          // Distancia
+          `<div class="meta">Umbral ${fmtM(a.threshold_m)} · ` +            // Umbral
+          `<span class="badge">${esc(REL_TXT[a.relation] || a.relation)}</span></div>` + // Sentido
+          `<div class="meta">${esc(a.train_a)}: ${esc(whereTxt(a.status_a, a.stop_a_name, a.stop_a))}` + // Tren A: hacia dónde va
+            `${a.heading_a == null ? "" : ` · rumbo ${fmtHeading(a.heading_a)}`}</div>` + // y su rumbo
+          `<div class="meta">${esc(a.train_b)}: ${esc(whereTxt(a.status_b, a.stop_b_name, a.stop_b))}` + // Tren B
+            `${a.heading_b == null ? "" : ` · rumbo ${fmtHeading(a.heading_b)}`}</div>` + // y su rumbo
+          `<div class="meta">Captura ${esc(fmtTime(a.captured_at))}` +       // Hora de captura
+          `${a.position_timestamp === latestTs ? "" : " · lectura anterior"}</div>` + // Marca si no es de la última lectura
+        `</div>`).join("");                                                  // Unimos las tarjetas
+    }
+    document.getElementById("alerts").addEventListener("click", (e) => {     // Clic en una alerta
+      const el = e.target.closest(".alert-item");                            // Tarjeta pulsada
+      if (!el) return;                                                       // Clic fuera de una tarjeta
+      const a = lastAlerts[Number(el.dataset.i)];                            // Su alerta
+      map.fitBounds([[a.lat_a, a.lon_a], [a.lat_b, a.lon_b]], { maxZoom: 15, padding: [60, 60] }); // Encuadramos el par
+      markers.get(a.train_a)?.openPopup();                                   // Abrimos el globo del tren A
+    });
+
+    // ======================================================================
+    // BLOQUE 14: Pestañas
+    // ======================================================================
+    document.querySelectorAll(".tabs button").forEach((btn) =>               // Cada botón de pestaña
+      btn.addEventListener("click", () => {                                  // Al pulsarlo
+        document.querySelectorAll(".tabs button").forEach((b) =>             // Todos los botones
+          b.setAttribute("aria-selected", String(b === btn)));               // Solo el pulsado queda activo
+        document.querySelectorAll(".tab").forEach((t) =>                     // Todos los contenidos
+          t.classList.toggle("active", t.id === btn.dataset.tab));           // Solo se ve el suyo
+      }));
+
+    // ======================================================================
+    // BLOQUE 15: Sondeo periódico
+    // Cada 15 s pide salud, trenes y alertas a la vez. Decide el estado:
+    //   API caída -> "API no disponible" (se mantiene lo último pintado)
+    //   0 trenes recientes -> "Sin datos recientes"
+    //   lectura más antigua que max_position_age_seconds -> "Datos antiguos"
+    //   si no     -> "En directo"
+    // ======================================================================
+    async function refresh() {
+      try {                                                                  // Cualquier fallo de red o HTTP cae al catch
+        const [health, trenes, alertas] = await Promise.all([                // Tres peticiones en paralelo
+          getJSON("/health"),                                                // Estado y configuración
+          getJSON(`/getTrenes?max_age_seconds=${config.max_position_age_seconds}`), // Solo trenes con posición reciente
+          getJSON("/getAlertas?limit=100"),                                  // Últimas alertas
+        ]);                                                                  // Fin de las peticiones
+        config = health;                                                     // Umbral y antigüedad máxima del backend
+        renderAlerts(alertas, trenes.latest_position_timestamp);             // Primero alertas (deciden colores)
+        renderTrains(trenes.trains);                                         // Después trenes
+        if (openId) loadNearby(openId);                                      // Recalculamos cercanos del globo abierto
+        document.getElementById("feedTime").textContent =                    // Hora de la lectura más reciente (recepción)
+          `Última lectura: ${fmtTime(trenes.latest_received_at)}`;
+        document.getElementById("feedTime").title =                          // Al pasar el ratón: hora según el feed
+          `Hora indicada por el feed de Renfe: ${fmtTime(trenes.latest_position_timestamp)} (llega con 1 h de desfase)`;
+        document.getElementById("lastPoll").textContent =                    // Hora de este sondeo
+          `Actualizado: ${fmtTime(new Date().toISOString())}`;
+        if (!trenes.count) {                                                 // Ninguna posición reciente
+          setStatus("warn", "Sin datos recientes",                           // Aviso claro
+            `No hay posiciones recibidas en los últimos ${fmtAge(config.max_position_age_seconds).replace("hace ", "")}. ¿Está funcionando el colector?`);
+          return;                                                            // Terminamos
+        }
+        const age = (Date.now() - new Date(trenes.latest_received_at)) / 1000; // Antigüedad según la hora de recepción
+        if (age > config.max_position_age_seconds) {                        // Más antigua de lo aceptable
+          setStatus("warn", "Datos antiguos",                                // Aviso de datos no recientes
+            `La última lectura se recibió ${fmtAge(age)} (${fmtTime(trenes.latest_received_at)}). ¿Está funcionando el colector? ` +
+            `Las posiciones mostradas pueden no reflejar la situación actual.`);
+        } else {                                                             // Datos frescos
+          setStatus("ok", "En directo", "");                                 // Sin aviso
+        }
+      } catch (err) {                                                        // API o BD caídas
+        setStatus("down", "API no disponible",                               // Estado de error
+          `No se puede contactar con el servicio (${err.message}). Se reintentará en ${POLL_MS / 1000} s; se muestran los últimos datos recibidos.`);
+      }
+    }
+    refresh();                                                               // Primera carga inmediata
+    setInterval(refresh, POLL_MS);                                           // Después, cada 15 s
+  </script>
+</body>
+</html>
