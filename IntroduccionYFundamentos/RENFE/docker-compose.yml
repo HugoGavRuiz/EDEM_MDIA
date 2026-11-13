@@ -1,0 +1,91 @@
+# ============================================================================
+# DOCKER COMPOSE DEL PROYECTO RENFE
+# Levanta la base de datos PostgreSQL y el colector con un solo comando:
+#     docker compose up
+# Los valores ${...} se leen del fichero .env (que no se sube a git).
+# ============================================================================
+
+services:
+
+  # ==========================================================================
+  # BLOQUE 1: Base de datos PostgreSQL
+  # Los datos se guardan en el volumen "pgdata", así sobreviven a reinicios.
+  # El healthcheck permite que el colector espere a que la BD esté lista.
+  # ==========================================================================
+  db:
+    image: postgres:16-alpine                     # PostgreSQL 16 (necesario para UNIQUE NULLS NOT DISTINCT)
+    restart: unless-stopped                       # Se reinicia sola salvo que la paremos nosotros
+    environment:                                  # Configuración de la BD al crearse
+      POSTGRES_DB: ${DB_NAME:-renfe}              # Nombre de la base de datos
+      POSTGRES_USER: ${DB_USER:-renfe}            # Usuario
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el fichero .env}  # Contraseña obligatoria, desde .env
+    volumes:                                      # Persistencia
+      - pgdata:/var/lib/postgresql/data           # Carpeta de datos de Postgres -> volumen con nombre
+    ports:                                        # Acceso desde el ordenador (psql, DBeaver...)
+      - "127.0.0.1:${DB_HOST_PORT:-5432}:5432"    # Solo desde esta máquina, no desde la red
+    healthcheck:                                  # Comprobación de "BD lista"
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]  # $$ = variable del contenedor, no de .env
+      interval: 5s                                # Cada 5 segundos
+      timeout: 5s                                 # Tiempo máximo por comprobación
+      retries: 10                                 # Fallos seguidos antes de marcarla como "unhealthy"
+
+  # ==========================================================================
+  # BLOQUE 2: Colector Python
+  # Se construye con el Dockerfile de esta carpeta y solo arranca cuando la BD
+  # está "healthy". Toda la configuración llega por variables de entorno.
+  # ==========================================================================
+  collector:
+    build: .                                      # Imagen construida con ./Dockerfile
+    depends_on:                                   # Orden de arranque
+      db:
+        condition: service_healthy                # Espera a que el healthcheck de la BD pase
+    restart: on-failure                           # Si falla (código != 0) se reinicia; si termina bien, no
+    environment:                                  # Configuración del colector
+      DATA_SOURCE: ${DATA_SOURCE:-api}            # api = Renfe en tiempo real (cada 15 s), local = fichero de ejemplo
+      ALERT_DISTANCE_METERS: ${ALERT_DISTANCE_METERS:-1000}  # Umbral de alerta en metros
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-15}    # Segundos entre consultas (modo api)
+      DB_HOST: db                                 # Nombre del servicio de BD dentro de la red de Compose
+      DB_PORT: 5432                               # Puerto interno de Postgres
+      DB_NAME: ${DB_NAME:-renfe}                  # Misma BD que el servicio db
+      DB_USER: ${DB_USER:-renfe}                  # Mismo usuario
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el fichero .env}  # Misma contraseña, desde .env
+
+  # ==========================================================================
+  # BLOQUE 3: Backend FastAPI
+  # Lee la BD y expone la API. Swagger en http://localhost:8000/docs
+  # ==========================================================================
+  backend:
+    build: ./backend                              # Imagen construida con ./backend/Dockerfile
+    depends_on:                                   # Orden de arranque
+      db:
+        condition: service_healthy                # Espera a que la BD esté lista
+    restart: unless-stopped                       # Servicio permanente
+    environment:                                  # Configuración del backend
+      DB_HOST: db                                 # Servicio de BD dentro de la red de Compose
+      DB_PORT: 5432                               # Puerto interno de Postgres
+      DB_NAME: ${DB_NAME:-renfe}                  # Misma BD
+      DB_USER: ${DB_USER:-renfe}                  # Mismo usuario
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el fichero .env}  # Misma contraseña, desde .env
+      ALERT_DISTANCE_METERS: ${ALERT_DISTANCE_METERS:-1000}  # Umbral, para /getDistancia y el frontend
+      MAX_POSITION_AGE_SECONDS: ${MAX_POSITION_AGE_SECONDS:-300}  # Antigüedad máxima de una posición "reciente"
+    ports:                                        # Acceso desde el ordenador
+      - "127.0.0.1:${API_PORT:-8000}:8000"        # http://localhost:8000/docs
+
+  # ==========================================================================
+  # BLOQUE 4: Frontend (nginx)
+  # Sirve la web y reenvía /api/... al backend. Web en http://localhost:8080
+  # ==========================================================================
+  frontend:
+    build: ./frontend                             # Imagen construida con ./frontend/Dockerfile
+    depends_on:                                   # Orden de arranque
+      - backend                                   # nginx necesita que exista el servicio "backend"
+    restart: unless-stopped                       # Servicio permanente
+    ports:                                        # Acceso desde el ordenador
+      - "127.0.0.1:${WEB_PORT:-8080}:80"          # http://localhost:8080
+
+# ============================================================================
+# BLOQUE 5: Volúmenes
+# Docker gestiona este espacio; borrarlo requiere `docker compose down -v`.
+# ============================================================================
+volumes:
+  pgdata:                                         # Datos persistentes de PostgreSQL

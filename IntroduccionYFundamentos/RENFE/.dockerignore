@@ -1,0 +1,12 @@
+# Ficheros que NO se envían a Docker al construir la imagen
+# Credenciales: nunca dentro de la imagen
+.env
+# Bases de datos locales (SQLite de pruebas)
+*.db
+# Caché de Python
+__pycache__/
+# Control de versiones
+.git
+# Ficheros que el colector no usa
+*.pb
+trenes_cercanos.txt
